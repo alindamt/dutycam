@@ -164,26 +164,37 @@ captureBtn.addEventListener('click', () => {
   console.log('Snapshot captured (length):', dataUrl.length);
 });
 
-// ---------- SIGN IN / SIGN OUT ----------
-function handleSignIn() {
-  if (!mediaStream) {
-    if (!confirm('Camera is not active. Continue sign in without photo verification?')) return;
-  }
-  if (mediaStream && video.videoWidth) {
-    video.style.opacity = '0.5';
-    setTimeout(() => { video.style.opacity = '1'; }, 150);
-  }
+// ============================================
+//   SIGN IN / SIGN OUT
+// ============================================
+async function handleSignIn() {
+  // 1. Unlock audio/voice on first tap
+  initAudioContext();
+  unlockSpeech();
+
+  // 2. Speak IMMEDIATELY (browsers require voice to trigger on the exact tap)
+  speak('Welcome');
+
+  // 3. Add log
   addLog('signin');
+
+  // 4. Auto-capture AFTER voice starts (so it doesn't block the audio)
+  captureSnapshot();
 }
 
-function handleSignOut() {
-  if (!mediaStream) {
-    if (!confirm('Camera is not active. Continue sign out without photo verification?')) return;
-  }
-  if (mediaStream && video.videoWidth) {
-    video.style.opacity = '0.5';
-    setTimeout(() => { video.style.opacity = '1'; }, 150);
-  }
+async function handleSignOut() {
+  initAudioContext();
+  unlockSpeech();
+
+  // 1. Speak IMMEDIATELY
+  speak('Goodbye');
+
+  // 2. Add log
+  addLog('signout');
+
+  // 3. Auto-capture AFTER
+  captureSnapshot();
+}
   addLog('signout');
 }
 
