@@ -194,25 +194,24 @@ function renderLogs() {
     const icon = entry.type === 'signin'
       ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>'
       : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
-    const label = entry.type === 'signin' ? 'Sign in' : 'Sign out';
+    
+    // THIS IS THE FIX: It now shows the Name first, then the action
+    const label = entry.type === 'signin' ? 'Sign In' : 'Sign Out';
+    const displayName = entry.name || 'Unknown';
     const timeStr = `${formatDate(entry.timestamp)} · ${formatTime(entry.timestamp)}`;
+    
     return `
       <div class="log-entry">
-        <div class="log-type">${icon} ${label}</div>
+        <div class="log-type">
+          ${icon} 
+          <span style="color: white; font-weight: 600; margin-right: 4px;">${displayName}</span> 
+          <span style="color: #9aa6c2; font-size: 0.85rem;">· ${label}</span>
+        </div>
         <div class="log-time">${timeStr}</div>
       </div>
     `;
   }).join('');
 }
-
-function addLog(type) {
-  const now = new Date();
-  logs.push({ type, timestamp: now });
-  if (logs.length > 20) logs.shift();
-
-  try { localStorage.setItem('dutycam_logs', JSON.stringify(logs)); } catch (e) {}
-
-  renderLogs();
 
   lastAction = type;
   const actionWord = type === 'signin' ? 'Signed in' : 'Signed out';
