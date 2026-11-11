@@ -442,3 +442,55 @@ if (onboardBtn && onboardOverlay) {
   lastActionMsg.innerHTML =
     `<i class="fas fa-info-circle"></i> Tap "Test Voice" once, then use Sign In / Sign Out.`;
 })();
+
+// ============================================
+//   NAME INPUT (Save and Greet User)
+// ============================================
+const userNameInput = document.getElementById('userNameInput');
+
+// Load saved name on startup
+if (localStorage.getItem('dutycam_username')) {
+  userNameInput.value = localStorage.getItem('dutycam_username');
+}
+
+// Save name as they type
+userNameInput.addEventListener('input', (e) => {
+  localStorage.setItem('dutycam_username', e.target.value);
+});
+
+// Override the Sign In / Sign Out to include the name
+const originalHandleSignIn = handleSignIn;
+const originalHandleSignOut = handleSignOut;
+
+handleSignIn = async function() {
+  const name = userNameInput.value.trim();
+  if (!name) {
+    alert('Please enter your name first!');
+    return;
+  }
+  initAudioContext();
+  unlockSpeech();
+  speak('Welcome, ' + name); // Speak with name
+  addLog('signin');
+  captureSnapshot();
+};
+
+handleSignOut = async function() {
+  const name = userNameInput.value.trim();
+  if (!name) {
+    alert('Please enter your name first!');
+    return;
+  }
+  initAudioContext();
+  unlockSpeech();
+  speak('Goodbye, ' + name); // Speak with name
+  addLog('signout');
+  captureSnapshot();
+};
+
+// Re-attach the new functions to the buttons
+signInBtn.removeEventListener('click', originalHandleSignIn);
+signOutBtn.removeEventListener('click', originalHandleSignOut);
+signInBtn.addEventListener('click', handleSignIn);
+signOutBtn.addEventListener('click', handleSignOut);
+
