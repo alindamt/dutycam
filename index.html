@@ -4,22 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0f1c">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>DutyCam · Sign In / Sign Out</title>
-
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ============================================
-       FIRST-VISIT ONBOARDING (helps all phones)
-       ============================================ -->
+  <!-- ONBOARDING OVERLAY -->
   <div id="onboard" style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);">
     <div style="background:#141c2d;border-radius:24px;padding:28px;max-width:420px;width:100%;color:#eef2ff;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.7);">
       <h2 style="margin-bottom:12px;font-size:1.4rem;">👋 Welcome to DutyCam</h2>
@@ -27,58 +18,44 @@
         To get camera + voice working on your phone:
       </p>
       <ol style="margin:0 0 20px 20px;line-height:2;color:#c7d2ff;font-size:0.95rem;">
-        <li><strong>Allow Camera</strong> when the browser asks</li>
-        <li><strong>Tap "Test Voice"</strong> once to enable audio</li>
-        <li>Then use <strong>Sign In</strong> / <strong>Sign Out</strong></li>
+        <li><strong>Enter your name</strong></li>
+        <li><strong>Allow Camera</strong> when asked</li>
+        <li><strong>Tap "Test Voice"</strong> once</li>
       </ol>
-      <p style="margin-bottom:20px;font-size:0.8rem;color:#6b7aa1;">
-        💡 Tip: Use Chrome on Android, Safari on iPhone.
-      </p>
       <button id="onboardBtn" style="width:100%;padding:14px;border:none;border-radius:60px;background:#2a6df4;color:#fff;font-size:1rem;font-weight:500;cursor:pointer;box-shadow:0 8px 20px rgba(42,109,244,0.4);">
         Got it →
       </button>
     </div>
   </div>
 
-  <!-- ============================================
-       APP CONTAINER
-       ============================================ -->
   <div class="app-container">
-
-    <!-- ============ HEADER ============ -->
     <header class="app-header">
       <div class="brand">
         <i class="fas fa-camera-retro"></i>
         <h1>DutyCam</h1>
         <span class="badge">professional</span>
       </div>
-
       <div class="live-timestamp" id="liveTimestamp">
         <i class="far fa-clock"></i>
         <span id="currentTime">--:--:--</span>
       </div>
     </header>
 
-    <!-- ============ MAIN GRID ============ -->
     <main class="main-grid">
-
-      <!-- ===== LEFT: CAMERA CARD ===== -->
+      <!-- CAMERA CARD -->
       <section class="camera-card glass">
         <div class="card-header">
           <i class="fas fa-video"></i>
           <h2>Camera Preview</h2>
           <span class="status-dot" id="cameraStatus">active</span>
         </div>
-
         <div class="camera-view">
           <video id="videoElement" autoplay playsinline muted></video>
           <canvas id="canvasElement" style="display: none;"></canvas>
-
           <div class="snapshot-badge" id="snapshotBadge" style="display: none;">
             <i class="fas fa-camera"></i> last capture
           </div>
         </div>
-
         <div class="camera-controls">
           <button id="captureBtn" class="btn btn-primary">
             <i class="fas fa-camera"></i> Capture &amp; Log
@@ -87,25 +64,18 @@
             <i class="fas fa-sync-alt"></i> Restart Camera
           </button>
         </div>
-
-        <p class="hint">
-          <i class="fas fa-info-circle"></i>
-          Auto-capture on Sign In / Sign Out · Voice greeting enabled.
-        </p>
       </section>
 
-      <!-- ===== RIGHT COLUMN ===== -->
+      <!-- RIGHT COLUMN -->
       <div class="right-column">
-
-        <!-- Action Card -->
         <section class="action-card glass">
           <div class="card-header">
             <i class="fas fa-user-clock"></i>
             <h2>Duty Actions</h2>
           </div>
 
-                    <!-- NEW: Employee Name Input -->
-          <div style="margin-top: 15px; margin-bottom: 5px;">
+          <!-- NEW: NAME INPUT -->
+          <div style="margin-top: 15px; margin-bottom: 15px;">
             <input type="text" id="userNameInput" placeholder="Enter your name here..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none;">
           </div>
 
@@ -122,13 +92,11 @@
             <i class="fas fa-history"></i> No recent activity
           </div>
 
-          <!-- NEW: Voice Test Button (unlocks speech on all phones) -->
           <button id="testVoiceBtn" class="btn btn-secondary" style="width:100%; margin-top:12px; justify-content:center;">
             <i class="fas fa-volume-up"></i> Test Voice (tap first!)
           </button>
         </section>
 
-        <!-- Logs Card -->
         <section class="logs-card glass">
           <div class="card-header">
             <i class="fas fa-clipboard-list"></i>
@@ -137,24 +105,19 @@
               <i class="fas fa-trash-alt"></i>
             </button>
           </div>
-
           <div class="logs-list" id="logsList">
             <div class="empty-log">No sign in/out records yet.</div>
           </div>
         </section>
-
       </div>
     </main>
 
-    <!-- ============ FOOTER ============ -->
     <footer class="app-footer">
       <span><i class="fas fa-shield-alt"></i> DutyCam · Secure Verification</span>
       <span id="sessionInfo">Idle</span>
     </footer>
-
   </div>
 
-  <!-- Main Script -->
   <script src="script.js"></script>
 </body>
 </html>
