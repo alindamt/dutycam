@@ -1,5 +1,5 @@
 /* ============================================
-   DUTYCAM v5 · FINAL VERSION (WITH IMAGES)
+   DUTYCAM v6 · WITH SCHEDULE
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,10 +17,70 @@ document.addEventListener('DOMContentLoaded', () => {
   const onboardOverlay  = document.getElementById('onboard');
   const clearLogsBtn    = document.getElementById('clearLogsBtn');
 
+  // Schedule Elements
+  const openScheduleBtn = document.getElementById('openScheduleBtn');
+  const closeScheduleBtn= document.getElementById('closeScheduleBtn');
+  const scheduleScreen  = document.getElementById('scheduleScreen');
+  const calendarStrip   = document.getElementById('calendarStrip');
+  const currentMonthYear= document.getElementById('currentMonthYear');
+
   let logs = [];
   let mediaStream = null;
 
-  // 1. CAPTURE PHOTO
+  // ============================================
+  //   SCHEDULE CALENDAR LOGIC
+  // ============================================
+  function renderCalendar() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+
+    // Set Month Title
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    currentMonthYear.textContent = `${monthNames[month]} ${year}`;
+
+    // Generate 7-day strip centered around today
+    let html = '';
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // Start 3 days before today, end 3 days after
+    for (let i = -3; i <= 3; i++) {
+      let d = new Date(year, month, today + i);
+      let dNum = d.getDate();
+      let dName = dayNames[d.getDay()];
+      let isToday = (i === 0);
+
+      // Simulate a "shift" on Wednesdays (just like your screenshot)
+      let hasShift = (d.getDay() === 3); 
+
+      html += `
+        <div class="cal-day ${isToday ? 'active' : ''}">
+          <div class="num">${dNum.toString().padStart(2, '0')}</div>
+          <div class="name">${dName}</div>
+          ${hasShift ? '<div class="shift-dot"></div>' : ''}
+        </div>
+      `;
+    }
+    calendarStrip.innerHTML = html;
+  }
+
+  // Open/Close Schedule
+  if (openScheduleBtn) {
+    openScheduleBtn.onclick = () => {
+      renderCalendar();
+      scheduleScreen.style.display = 'flex';
+    };
+  }
+  if (closeScheduleBtn) {
+    closeScheduleBtn.onclick = () => {
+      scheduleScreen.style.display = 'none';
+    };
+  }
+
+  // ============================================
+  //   DUTY ACTIONS & IMAGES
+  // ============================================
   function takeSnapshot() {
     return new Promise((resolve) => {
       if (!mediaStream || !video.videoWidth) return resolve(null);
@@ -34,18 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         ctx.restore();
         
-        // Visual flash effect
         video.style.opacity = '0.3';
         setTimeout(() => video.style.opacity = '1', 200);
 
-        // Convert to a small image string so it loads fast
         const dataUrl = canvas.toDataURL('image/jpeg', 0.4); 
         resolve(dataUrl);
       } catch (e) { resolve(null); }
     });
   }
 
-  // 2. LOG MANAGEMENT (With Images)
   function renderLogs() {
     if (!logsList) return;
     if (logs.length === 0) {
@@ -64,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>'
         : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
 
-      // IMAGE THUMBNAIL
       const photoHtml = entry.photo 
         ? `<img src="${entry.photo}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);">`
         : `<div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;"><i class="fas fa-camera" style="color: #9aa6c2;"></i></div>`;
@@ -86,9 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     logsList.innerHTML = html;
   }
 
-  // 3. ADD LOG
   async function addLog(type, name) {
-    const photo = await takeSnapshot(); // Take photo first
+    const photo = await takeSnapshot();
     const now = new Date();
     
     logs.push({ type, timestamp: now, name: name, photo: photo });
@@ -107,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. BUTTON CLICKS
   if (signInBtn) {
     signInBtn.onclick = async function(e) {
       e.preventDefault();
@@ -130,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 5. CLEAR LOGS
   if (clearLogsBtn) {
     clearLogsBtn.onclick = function() {
       if (confirm('Clear all activity logs?')) {
@@ -140,7 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 6. VOICE ENGINE
+  // ============================================
+  //   VOICE & ONBOARDING
+  // ============================================
   function speak(text) {
     try {
       window.speechSynthesis.cancel();
@@ -152,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     testVoiceBtn.onclick = function() { speak("Test successful"); };
   }
 
-  // 7. ONBOARDING
   if (onboardBtn && onboardOverlay) {
     onboardBtn.onclick = function() {
       onboardOverlay.style.display = 'none';
@@ -160,7 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 8. CAMERA START
+  // ============================================
+  //   CAMERA START
+  // ============================================
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
       .then(stream => { 
