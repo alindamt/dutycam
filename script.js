@@ -1,313 +1,107 @@
-/* ============================================
-   DUTYCAM · FINAL FIX (NO CACHE / NO LOCALSTORAGE ERRORS)
-   ============================================ */
-
 document.addEventListener('DOMContentLoaded', () => {
 
-  // DOM Elements
   const video           = document.getElementById('videoElement');
-  const canvas          = document.getElementById('canvasElement');
-  const captureBtn      = document.getElementById('captureBtn');
-  const retryCamBtn     = document.getElementById('retryCamBtn');
   const signInBtn       = document.getElementById('signInBtn');
   const signOutBtn      = document.getElementById('signOutBtn');
   const logsList        = document.getElementById('logsList');
-  const clearLogsBtn    = document.getElementById('clearLogsBtn');
   const lastActionMsg   = document.getElementById('lastActionMessage');
-  const snapshotBadge   = document.getElementById('snapshotBadge');
-  const cameraStatus    = document.getElementById('cameraStatus');
-  const currentTimeSpan = document.getElementById('currentTime');
-  const sessionInfo     = document.getElementById('sessionInfo');
-  const testVoiceBtn    = document.getElementById('testVoiceBtn');
   const userNameInput   = document.getElementById('userNameInput');
-  const onboardOverlay  = document.getElementById('onboard');
-  const onboardBtn      = document.getElementById('onboardBtn');
+  const sessionInfo     = document.getElementById('sessionInfo');
 
-  // State
-  let mediaStream = null;
-  let logs = []; // Keeps records in memory
-  let voiceUnlocked = false;
-  let chosenVoice = null;
-  let audioCtx = null;
+  let logs = [];
 
-  // Helpers
-  const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const formatDate = (d) => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  function addLog(type, name) {
+    const now = new Date();
+    logs.push({ type, timestamp: now, name: name });
+    renderLogs();
 
-  // Clock
-  function updateClock() { 
-    if (currentTimeSpan) currentTimeSpan.textContent = formatTime(new Date()); 
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-
-  // Load Name on Startup
-  try {
-    if (localStorage.getItem('dutycam_username') && userNameInput) {
-      userNameInput.value = localStorage.getItem('dutycam_username');
+    // Update the UI instantly
+    const actionWord = type === 'signin' ? 'Signed in' : 'Signed out';
+    const timeStr = now.toLocaleTimeString();
+    
+    if (lastActionMsg) {
+      lastActionMsg.innerHTML = `<i class="fas fa-check-circle"></i> ${actionWord} at ${timeStr}`;
     }
-  } catch (e) { console.warn('Storage blocked'); }
-  
-  // Save Name as typed
-  if (userNameInput) {
-    userNameInput.addEventListener('input', (e) => {
-      try { localStorage.setItem('dutycam_username', e.target.value); } catch(err) {}
-    });
-  }
-
-  // ============================================
-  //   ONBOARDING OVERLAY
-  // ============================================
-  if (onboardBtn && onboardOverlay) {
-    onboardBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      onboardOverlay.style.display = 'none';
-      initAudioContext();
-      unlockSpeech();
-    });
-  }
-
-  // ============================================
-  //   VOICE ENGINE
-  // ============================================
-  function loadVoices() {
-    const voices = speechSynthesis.getVoices();
-    if (!voices.length) return;
-    const enVoices = voices.filter(v => /^en/i.test(v.lang));
-    chosenVoice = enVoices.find(v => /en[-_]US/i.test(v.lang) && v.localService) || enVoices[0] || voices[0];
-  }
-  speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-
-  function initAudioContext() {
-    if (audioCtx) return;
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      audioCtx = new Ctx();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-    } catch (e) {}
-  }
-
-  function unlockSpeech() {
-    initAudioContext();
-    if (voiceUnlocked) return;
-    try {
-      const warm = new SpeechSynthesisUtterance(' ');
-      warm.volume = 0.01;
-      if (chosenVoice) warm.voice = chosenVoice;
-      speechSynthesis.speak(warm);
-      voiceUnlocked = true;
-    } catch (e) {}
-  }
-
-  function speak(text) {
-    if (!chosenVoice) loadVoices();
-    try {
-      speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.volume = 1;
-      utter.rate = 0.9;
-      if (chosenVoice) utter.voice = chosenVoice;
-      speechSynthesis.speak(utter);
-    } catch (e) {
-      console.warn('Speech failed', e);
+    if (sessionInfo) {
+      sessionInfo.innerHTML = type === 'signin' 
+        ? `On duty since ${timeStr}` 
+        : `Off duty since ${timeStr}`;
     }
   }
 
-  ['click', 'touchstart'].forEach(evt => {
-    document.addEventListener(evt, () => { initAudioContext(); unlockSpeech(); }, { once: true, passive: true });
-  });
-
-  if (testVoiceBtn) {
-    testVoiceBtn.addEventListener('click', () => {
-      initAudioContext();
-      unlockSpeech();
-      setTimeout(() => speak('Voice test successful'), 100);
-    });
-  }
-
-  // ============================================
-  //   LOG MANAGEMENT (GUARANTEED TO SHOW)
-  // ============================================
   function renderLogs() {
     if (!logsList) return;
-    
     if (logs.length === 0) {
       logsList.innerHTML = `<div class="empty-log">No sign in/out records yet.</div>`;
       return;
     }
     
-    const reversed = [...logs].reverse();
     let html = '';
-    
-    reversed.forEach(entry => {
-      const icon = entry.type === 'signin'
-        ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>'
-        : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
-      
+    // Show newest first
+    for (let i = logs.length - 1; i >= 0; i--) {
+      const entry = logs[i];
       const label = entry.type === 'signin' ? 'Sign In' : 'Sign Out';
-      const displayName = entry.name || 'Unknown';
-      const timeStr = `${formatDate(entry.timestamp)} · ${formatTime(entry.timestamp)}`;
+      const timeStr = entry.timestamp.toLocaleTimeString();
       
       html += `
-        <div class="log-entry">
-          <div class="log-type">
-            ${icon} 
-            <span style="color: white; font-weight: 600; margin-right: 4px;">${displayName}</span> 
-            <span style="color: #9aa6c2; font-size: 0.85rem;">· ${label}</span>
-          </div>
-          <div class="log-time">${timeStr}</div>
+        <div class="log-entry" style="border: 1px solid red; padding: 10px; margin-bottom: 5px;">
+          <div><strong>${entry.name}</strong> · ${label}</div>
+          <div>${timeStr}</div>
         </div>
       `;
-    });
-    
+    }
     logsList.innerHTML = html;
   }
 
-  function addLog(type, name) {
-    const now = new Date();
-    logs.push({ type, timestamp: now, name: name });
-    if (logs.length > 20) logs.shift();
-    
-    // Force the UI to update first
-    renderLogs();
-
-    // Try to save in background
-    try { 
-      localStorage.setItem('dutycam_logs', JSON.stringify(logs)); 
-    } catch (e) {}
-
-    const actionWord = type === 'signin' ? 'Signed in' : 'Signed out';
-    const timeStr = formatTime(now);
-    const color = type === 'signin' ? '#0b9e6b' : '#d64545';
-
-    if (lastActionMsg) {
-      lastActionMsg.innerHTML = `<i class="fas fa-check-circle" style="color: ${color};"></i> ${actionWord} at ${timeStr}`;
-    }
-    if (sessionInfo) {
-      sessionInfo.innerHTML = type === 'signin'
-        ? `<i class="fas fa-user-check" style="color: #0b9e6b;"></i> On duty since ${timeStr}`
-        : `<i class="fas fa-user-slash" style="color: #d64545;"></i> Off duty since ${timeStr}`;
-    }
-  }
-
-  if (clearLogsBtn) {
-    clearLogsBtn.addEventListener('click', () => {
-      if (confirm('Clear all activity logs?')) {
-        logs = [];
-        try { localStorage.removeItem('dutycam_logs'); } catch(e) {}
-        renderLogs();
-        if (lastActionMsg) lastActionMsg.innerHTML = `<i class="fas fa-history"></i> No recent activity`;
-        if (sessionInfo) sessionInfo.textContent = 'Idle';
+  // STRICT DEBUG BUTTON LISTENERS
+  if (signInBtn) {
+    signInBtn.onclick = function() {
+      console.log("Sign In Clicked!");
+      const name = userNameInput ? userNameInput.value.trim() : "";
+      if (!name) {
+        alert("Please enter your name first!");
+        return;
       }
-    });
+      addLog('signin', name);
+      speak("Welcome " + name);
+    };
   }
 
-  // ============================================
-  //   CAMERA
-  // ============================================
-  async function startCamera() {
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(t => t.stop());
-      mediaStream = null;
-    }
+  if (signOutBtn) {
+    signOutBtn.onclick = function() {
+      console.log("Sign Out Clicked!");
+      const name = userNameInput ? userNameInput.value.trim() : "";
+      if (!name) {
+        alert("Please enter your name first!");
+        return;
+      }
+      addLog('signout', name);
+      speak("Goodbye " + name);
+    };
+  }
+
+  // VOICE
+  function speak(text) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false
-      });
-      mediaStream = stream;
-      video.srcObject = stream;
-      if (cameraStatus) {
-        cameraStatus.textContent = 'active';
-        cameraStatus.style.background = '#0b9e6b';
-        cameraStatus.style.boxShadow = '0 0 10px #0b9e6b80';
-      }
-    } catch (err) {
-      if (cameraStatus) {
-        cameraStatus.textContent = 'unavailable';
-        cameraStatus.style.background = '#d64545';
-      }
-      alert('Unable to access camera. Please check permissions.');
-    }
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    } catch(e) {}
   }
 
-  if (retryCamBtn) retryCamBtn.addEventListener('click', startCamera);
-
-  // ============================================
-  //   SNAPSHOT
-  // ============================================
-  function captureSnapshot() {
-    return new Promise((resolve) => {
-      if (!mediaStream || !video.videoWidth) return resolve(false);
-      try {
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.save();
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        video.style.opacity = '0.4';
-        setTimeout(() => { video.style.opacity = '1'; }, 180);
-
-        if (snapshotBadge) {
-          snapshotBadge.style.display = 'flex';
-          setTimeout(() => { snapshotBadge.style.display = 'none'; }, 2000);
-        }
-        resolve(true);
-      } catch (e) { resolve(false); }
-    });
+  // ONBOARDING
+  const onboardBtn = document.getElementById('onboardBtn');
+  const onboardOverlay = document.getElementById('onboard');
+  if (onboardBtn && onboardOverlay) {
+    onboardBtn.onclick = function() {
+      onboardOverlay.style.display = 'none';
+      speak("Welcome");
+    };
   }
 
-  if (captureBtn) {
-    captureBtn.addEventListener('click', async () => {
-      const ok = await captureSnapshot();
-      if (ok) speak('Snapshot saved');
-    });
+  // CAMERA
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { if(video) video.srcObject = stream; })
+      .catch(err => { console.log("Camera error", err); });
   }
 
-  // ============================================
-  //   SIGN IN / SIGN OUT
-  // ============================================
-  async function handleSignIn() {
-    const name = userNameInput.value.trim();
-    if (!name) return alert('Please enter your name first!');
-    
-    addLog('signin', name);
-    initAudioContext();
-    unlockSpeech();
-    speak('Welcome, ' + name);
-    captureSnapshot();
-  }
-
-  async function handleSignOut() {
-    const name = userNameInput.value.trim();
-    if (!name) return alert('Please enter your name first!');
-    
-    addLog('signout', name);
-    initAudioContext();
-    unlockSpeech();
-    speak('Goodbye, ' + name);
-    captureSnapshot();
-  }
-
-  if (signInBtn) signInBtn.addEventListener('click', handleSignIn);
-  if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
-
-  // ============================================
-  //   START APP
-  // ============================================
-  try {
-    const saved = localStorage.getItem('dutycam_logs');
-    if (saved) {
-      logs = JSON.parse(saved);
-      renderLogs();
-    }
-  } catch (e) {}
-
-  startCamera();
 });
