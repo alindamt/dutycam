@@ -208,3 +208,24 @@ signOutBtn.addEventListener('click', handleSignOut);
   lastActionMsg.innerHTML =
     `<i class="fas fa-info-circle"></i> Use Sign In / Sign Out to record duty.`;
 })();
+
+// ============================================
+//   ONBOARDING OVERLAY (First visit)
+// ============================================
+const onboardOverlay = document.getElementById('onboard');
+const onboardBtn = document.getElementById('onboardBtn');
+
+if (onboardBtn && onboardOverlay) {
+  onboardBtn.addEventListener('click', () => {
+    onboardOverlay.style.display = 'none';
+    
+    // Unlock audio/voice when they click "Got it"
+    if (typeof initAudioContext === 'function') initAudioContext();
+    if (typeof unlockSpeech === 'function') unlockSpeech();
+    
+    // Optional: Say a greeting
+    setTimeout(() => {
+      if (typeof speak === 'function') speak('Welcome to Duty Cam');
+    }, 300);
+  });
+}
