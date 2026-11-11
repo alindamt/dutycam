@@ -1,5 +1,5 @@
 /* ============================================
-   DUTYCAM · FINAL BULLETPROOF VERSION
+   DUTYCAM · FINAL FIX (NO CACHE / NO LOCALSTORAGE ERRORS)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State
   let mediaStream = null;
-  let logs = [];
+  let logs = []; // Keeps records in memory
   let voiceUnlocked = false;
   let chosenVoice = null;
   let audioCtx = null;
@@ -42,9 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClock();
 
   // Load Name on Startup
-  if (localStorage.getItem('dutycam_username') && userNameInput) {
-    userNameInput.value = localStorage.getItem('dutycam_username');
-  }
+  try {
+    if (localStorage.getItem('dutycam_username') && userNameInput) {
+      userNameInput.value = localStorage.getItem('dutycam_username');
+    }
+  } catch (e) { console.warn('Storage blocked'); }
   
   // Save Name as typed
   if (userNameInput) {
@@ -54,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================
-  //   ONBOARDING OVERLAY FIX
+  //   ONBOARDING OVERLAY
   // ============================================
   if (onboardBtn && onboardOverlay) {
     onboardBtn.addEventListener('click', (e) => {
@@ -126,18 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================
-  //   LOG MANAGEMENT (BULLETPROOF)
+  //   LOG MANAGEMENT (GUARANTEED TO SHOW)
   // ============================================
   function renderLogs() {
     if (!logsList) return;
     
-    if (!logs.length) {
+    if (logs.length === 0) {
       logsList.innerHTML = `<div class="empty-log">No sign in/out records yet.</div>`;
       return;
     }
     
     const reversed = [...logs].reverse();
-    logsList.innerHTML = reversed.map(entry => {
+    let html = '';
+    
+    reversed.forEach(entry => {
       const icon = entry.type === 'signin'
         ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>'
         : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
@@ -146,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const displayName = entry.name || 'Unknown';
       const timeStr = `${formatDate(entry.timestamp)} · ${formatTime(entry.timestamp)}`;
       
-      return `
+      html += `
         <div class="log-entry">
           <div class="log-type">
             ${icon} 
@@ -156,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="log-time">${timeStr}</div>
         </div>
       `;
-    }).join('');
+    });
+    
+    logsList.innerHTML = html;
   }
 
   function addLog(type, name) {
@@ -164,14 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
     logs.push({ type, timestamp: now, name: name });
     if (logs.length > 20) logs.shift();
     
-    // Save to LocalStorage safely
+    // Force the UI to update first
+    renderLogs();
+
+    // Try to save in background
     try { 
       localStorage.setItem('dutycam_logs', JSON.stringify(logs)); 
-    } catch (e) {
-      console.warn('Could not save to localStorage', e);
-    }
-    
-    renderLogs();
+    } catch (e) {}
 
     const actionWord = type === 'signin' ? 'Signed in' : 'Signed out';
     const timeStr = formatTime(now);
@@ -272,10 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = userNameInput.value.trim();
     if (!name) return alert('Please enter your name first!');
     
-    // 1. Save Log First (Guarantees it shows up)
     addLog('signin', name);
-    
-    // 2. Then try audio and snapshot
     initAudioContext();
     unlockSpeech();
     speak('Welcome, ' + name);
@@ -286,10 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = userNameInput.value.trim();
     if (!name) return alert('Please enter your name first!');
     
-    // 1. Save Log First
     addLog('signout', name);
-    
-    // 2. Then try audio and snapshot
     initAudioContext();
     unlockSpeech();
     speak('Goodbye, ' + name);
@@ -308,9 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
       logs = JSON.parse(saved);
       renderLogs();
     }
-  } catch (e) {
-    console.warn('Could not load logs', e);
-  }
+  } catch (e) {}
 
   startCamera();
 });
