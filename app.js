@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
       // ============================================
-  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (5 MIN TEST)
+  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (0 MIN TEST)
   // ============================================
   
   // Set this to a secret PIN you will give users after they pay
@@ -311,8 +311,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Calculate difference in MINUTES (for testing)
       const diffMinutes = Math.floor((now - start) / (1000 * 60));
 
-      // LOCK AFTER 5 MINUTES
-      if (diffMinutes > 5) {
+      // LOCK AFTER 0 MINUTES
+      if (diffMinutes > 0) {
         // TRIAL EXPIRED: LOCK THE APP
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
       } else {
-        const minsLeft = 5 - diffMinutes;
+        const minsLeft = 0 - diffMinutes;
         sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Test Trial: ${minsLeft} mins left`;
       }
     } catch(e) { console.warn(e); }
