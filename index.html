@@ -141,6 +141,33 @@
       </div>
     </main>
 
+        <!-- ================= ADMIN PANEL (Hidden) ================= -->
+    <div id="adminPanel" style="display:none; background: #141c2d; padding: 20px; border-radius: 16px; border: 1px solid #2a6df4; margin-top: 20px;">
+      <h2 style="color: white; margin-bottom: 15px;"><i class="fas fa-user-shield" style="color: #2a6df4;"></i> Admin Dashboard</h2>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="color: #9aa6c2; font-size: 0.9rem;">Customer Phone Number</label>
+        <input type="text" id="adminPhone" placeholder="e.g. 0771234567" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; margin-top: 5px;">
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="color: #9aa6c2; font-size: 0.9rem;">Customer Name</label>
+        <input type="text" id="adminName" placeholder="e.g. John Doe" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; margin-top: 5px;">
+      </div>
+
+      <button id="generateSmsBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 15px;">
+        <i class="fas fa-sms"></i> Generate SMS Code
+      </button>
+
+      <div id="smsOutput" style="display: none; background: rgba(11, 158, 107, 0.1); border: 1px solid #0b9e6b; padding: 15px; border-radius: 8px;">
+        <p style="color: #0b9e6b; font-weight: bold; margin-bottom: 5px;">Message Ready to Send:</p>
+        <p id="smsText" style="color: white; font-size: 0.9rem; margin-bottom: 10px;"></p>
+        <a id="smsLink" href="#" class="btn btn-success" style="width: 100%; text-decoration: none;">
+          <i class="fas fa-paper-plane"></i> Open SMS App
+        </a>
+      </div>
+    </div>
+
     <!-- SUBSCRIPTION FOOTER -->
     <footer class="app-footer" style="flex-direction: column; align-items: flex-start; padding: 15px 20px;">
       <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
