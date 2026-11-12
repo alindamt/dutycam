@@ -4,104 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0f1c">
-  <title>DutyCam · Sign In / Sign Out</title>
+  <title>DutyCam · Schedule & Time Tracking</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* --- SCHEDULE SCREEN CSS --- */
-    #scheduleScreen {
-      position: fixed; inset: 0; background: #f4f6fa; z-index: 10000;
-      display: none; flex-direction: column; color: #1a1a1a;
-      font-family: 'Inter', sans-serif;
-    }
-    .sched-header {
-      background: #005eb8; color: white; padding: 20px;
-      display: flex; align-items: center; gap: 15px;
-      border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
-    }
-    .sched-header i { font-size: 1.5rem; cursor: pointer; }
-    .sched-header h2 { font-size: 1.5rem; font-weight: 500; margin: 0; }
-    .sched-tabs {
-      display: flex; background: white; margin: 15px 20px; border-radius: 12px;
-      overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .sched-tab {
-      flex: 1; text-align: center; padding: 15px 0; font-size: 1rem; font-weight: 500;
-      color: #666; cursor: pointer; border-bottom: 3px solid transparent;
-    }
-    .sched-tab.active { color: #1a1a1a; border-bottom: 3px solid #005eb8; }
-    .sched-content { padding: 0 20px; }
-    .sched-month-title {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 1.2rem; font-weight: 500; margin-bottom: 15px; color: #1a1a1a;
-    }
-    .legend { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #666; }
-    .legend-dot { width: 8px; height: 8px; background: #fbbc04; border-radius: 50%; display: inline-block; }
-    
-    .calendar-strip {
-      display: flex; background: #e8f0fe; border-radius: 16px; padding: 10px;
-      overflow-x: auto; gap: 5px;
-    }
-    .cal-day {
-      flex: 1; min-width: 45px; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 12px 0;
-      border-radius: 12px; cursor: pointer; position: relative;
-    }
-    .cal-day .num { font-size: 1.1rem; font-weight: 500; margin-bottom: 4px; color: #1a1a1a; }
-    .cal-day .name { font-size: 0.8rem; color: #666; }
-    .cal-day.active { background: #005eb8; }
-    .cal-day.active .num, .cal-day.active .name { color: white; }
-    .cal-day .shift-dot {
-      width: 6px; height: 6px; background: #fbbc04; border-radius: 50%;
-      position: absolute; bottom: 6px;
-    }
-    .cal-day.active .shift-dot { background: white; }
+    /* Extra styles for the new Schedule Tab */
+    .nav-tabs { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    .nav-tab { flex: 1; padding: 15px; text-align: center; color: #9aa6c2; cursor: pointer; font-weight: 600; transition: 0.3s; }
+    .nav-tab.active { background: #2a6df4; color: white; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .report-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 10px; }
+    .badge-total { background: #0b9e6b; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <!-- ONBOARDING OVERLAY -->
   <div id="onboard" style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);">
-    <div style="background:#141c2d;border-radius:24px;padding:28px;max-width:420px;width:100%;color:#eef2ff;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+    <div style="background:#141c2d;border-radius:24px;padding:28px;max-width:420px;width:100%;color:#eef2ff;border:1px solid rgba(255,255,255,0.1);">
       <h2 style="margin-bottom:12px;font-size:1.4rem;">👋 Welcome to DutyCam</h2>
       <p style="margin-bottom:16px;line-height:1.6;color:#9aa6c2;font-size:0.95rem;">
-        To get camera + voice working on your phone:
+        Enter your name, allow camera access, and tap "Test Voice" to begin tracking your work time.
       </p>
-      <ol style="margin:0 0 20px 20px;line-height:2;color:#c7d2ff;font-size:0.95rem;">
-        <li><strong>Enter your name</strong></li>
-        <li><strong>Allow Camera</strong> when asked</li>
-        <li><strong>Tap "Test Voice"</strong> once</li>
-      </ol>
-      <button id="onboardBtn" style="width:100%;padding:14px;border:none;border-radius:60px;background:#2a6df4;color:#fff;font-size:1rem;font-weight:500;cursor:pointer;box-shadow:0 8px 20px rgba(42,109,244,0.4);">
+      <button id="onboardBtn" style="width:100%;padding:14px;border:none;border-radius:60px;background:#2a6df4;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
         Got it →
       </button>
-    </div>
-  </div>
-
-  <!-- SCHEDULE SCREEN -->
-  <div id="scheduleScreen">
-    <div class="sched-header">
-      <i class="fas fa-arrow-left" id="closeScheduleBtn"></i>
-      <h2>Schedule</h2>
-    </div>
-    
-    <div class="sched-tabs">
-      <div class="sched-tab active">SHIFTS</div>
-      <div class="sched-tab">UPCOMING</div>
-    </div>
-
-    <div class="sched-content">
-      <div class="sched-month-title">
-        <span id="currentMonthYear">November 2026</span>
-        <div class="legend">
-          <span class="legend-dot"></span> Current shift
-        </div>
-      </div>
-      
-      <!-- Calendar Strip -->
-      <div class="calendar-strip" id="calendarStrip">
-        <!-- Days injected by JS -->
-      </div>
     </div>
   </div>
 
@@ -110,91 +38,93 @@
       <div class="brand">
         <i class="fas fa-camera-retro"></i>
         <h1>DutyCam</h1>
-        <span class="badge">professional</span>
       </div>
-      <div class="live-timestamp" id="liveTimestamp">
+      <div class="live-timestamp">
         <i class="far fa-clock"></i>
         <span id="currentTime">--:--:--</span>
       </div>
     </header>
 
-    <main class="main-grid">
-      <!-- CAMERA CARD -->
-      <section class="camera-card glass">
-        <div class="card-header">
-          <i class="fas fa-video"></i>
-          <h2>Camera Preview</h2>
-          <span class="status-dot" id="cameraStatus">active</span>
-        </div>
-        <div class="camera-view">
-          <video id="videoElement" autoplay playsinline muted></video>
-          <canvas id="canvasElement" style="display: none;"></canvas>
-          <div class="snapshot-badge" id="snapshotBadge" style="display: none;">
-            <i class="fas fa-camera"></i> last capture
-          </div>
-        </div>
-        <div class="camera-controls">
-          <button id="captureBtn" class="btn btn-primary">
-            <i class="fas fa-camera"></i> Capture &amp; Log
-          </button>
-          <button id="retryCamBtn" class="btn btn-secondary">
-            <i class="fas fa-sync-alt"></i> Restart Camera
-          </button>
-        </div>
-      </section>
+    <!-- NAVIGATION TABS -->
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchPage('camera')"><i class="fas fa-camera"></i> Clock In/Out</div>
+      <div class="nav-tab" onclick="switchPage('schedule')"><i class="fas fa-calendar-alt"></i> Schedule & Reports</div>
+    </div>
 
-      <!-- RIGHT COLUMN -->
-      <div class="right-column">
-        <section class="action-card glass">
+    <!-- ================= PAGE 1: CAMERA ================= -->
+    <main id="page-camera" class="page active">
+      <div class="main-grid">
+        <section class="camera-card glass">
           <div class="card-header">
-            <i class="fas fa-user-clock"></i>
-            <h2>Duty Actions</h2>
-            <!-- NEW SCHEDULE BUTTON -->
-            <button id="openScheduleBtn" class="btn-icon" style="margin-left: auto; color: #2a6df4;" title="View Schedule">
-              <i class="far fa-calendar-alt" style="font-size: 1.4rem;"></i>
-            </button>
+            <h2>Camera Preview</h2>
+            <span class="status-dot" id="cameraStatus">active</span>
           </div>
-
-          <div style="margin-top: 15px; margin-bottom: 15px;">
-            <input type="text" id="userNameInput" placeholder="Enter your name here..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none;">
+          <div class="camera-view">
+            <video id="videoElement" autoplay playsinline muted></video>
+            <canvas id="canvasElement" style="display: none;"></canvas>
           </div>
-
-          <div class="action-buttons">
-            <button id="signInBtn" class="btn btn-success">
-              <i class="fas fa-sign-in-alt"></i> Sign In
-            </button>
-            <button id="signOutBtn" class="btn btn-danger">
-              <i class="fas fa-sign-out-alt"></i> Sign Out
-            </button>
-          </div>
-
-          <div class="last-action" id="lastActionMessage">
-            <i class="fas fa-history"></i> No recent activity
-          </div>
-
-          <button id="testVoiceBtn" class="btn btn-secondary" style="width:100%; margin-top:12px; justify-content:center;">
-            <i class="fas fa-volume-up"></i> Test Voice (tap first!)
-          </button>
         </section>
 
-        <section class="logs-card glass">
-          <div class="card-header">
-            <i class="fas fa-clipboard-list"></i>
-            <h2>Recent Activity</h2>
-            <button id="clearLogsBtn" class="btn-icon" title="Clear logs">
-              <i class="fas fa-trash-alt"></i>
+        <div class="right-column">
+          <section class="action-card glass">
+            <div class="card-header">
+              <i class="fas fa-user-clock"></i>
+              <h2>Duty Actions</h2>
+            </div>
+
+            <div style="margin: 15px 0;">
+              <input type="text" id="userNameInput" placeholder="Enter your name here..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none;">
+            </div>
+
+            <div class="action-buttons">
+              <button id="signInBtn" class="btn btn-success">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+              </button>
+              <button id="signOutBtn" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+
+            <div class="last-action" id="lastActionMessage" style="margin-top: 15px;">
+              <i class="fas fa-history"></i> Ready to record
+            </div>
+
+            <button id="testVoiceBtn" class="btn btn-secondary" style="width:100%; margin-top:12px; justify-content:center;">
+              <i class="fas fa-volume-up"></i> Test Voice
             </button>
-          </div>
-          <div class="logs-list" id="logsList">
-            <div class="empty-log">No sign in/out records yet.</div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
 
-    <footer class="app-footer">
-      <span><i class="fas fa-shield-alt"></i> DutyCam · Secure Verification</span>
-      <span id="sessionInfo">Idle</span>
+    <!-- ================= PAGE 2: SCHEDULE & REPORTS ================= -->
+    <main id="page-schedule" class="page">
+      <div class="glass" style="padding: 20px; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 15px;"><i class="fas fa-search" style="color: #2a6df4;"></i> Search Records</h2>
+        <input type="text" id="searchInput" placeholder="Search by employee name..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none; margin-bottom: 15px;">
+        
+        <h3 style="margin-bottom: 10px; color: #9aa6c2;">Total Hours Worked (Last 3 Months)</h3>
+        <div id="totalHoursDisplay" style="font-size: 2rem; font-weight: bold; color: #0b9e6b;">0 hrs 0 mins</div>
+      </div>
+
+      <div class="glass" style="padding: 20px;">
+        <h2 style="margin-bottom: 15px;"><i class="fas fa-clipboard-list" style="color: #2a6df4;"></i> Work History</h2>
+        <div id="scheduleList">
+          <div style="color: #9aa6c2; text-align: center;">No records found.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- SUBSCRIPTION FOOTER -->
+    <footer class="app-footer" style="flex-direction: column; align-items: flex-start; padding: 15px 20px;">
+      <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+        <span><i class="fas fa-shield-alt"></i> DutyCam · Free Trial</span>
+        <span id="sessionInfo" style="color: #0b9e6b; font-weight: bold;">Active</span>
+      </div>
+      <div id="subscriptionBox" style="font-size: 0.8rem; color: #9aa6c2; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; width: 100%;">
+        <i class="fas fa-credit-card"></i> Subscribe: 5,000 UGX / month<br>
+        MTN Merchant: <strong>67117277</strong> | Airtel: <strong>654237</strong>
+      </div>
     </footer>
   </div>
 
