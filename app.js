@@ -351,4 +351,61 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================
   loadDatabase();
   checkSubscription();
+
+     // ============================================
+  // 8. ADMIN PANEL LOGIC (Secret Trigger)
+  // ============================================
+  
+  // Secret trigger: Click the "DutyCam" logo 5 times to open Admin Panel
+  let logoClicks = 0;
+  const brandLogo = document.querySelector('.brand');
+  const adminPanel = document.getElementById('adminPanel');
+  const generateSmsBtn = document.getElementById('generateSmsBtn');
+
+  if (brandLogo) {
+    brandLogo.addEventListener('click', () => {
+      logoClicks++;
+      if (logoClicks >= 5) {
+        if (adminPanel) {
+          adminPanel.style.display = adminPanel.style.display === 'none' ? 'block' : 'none';
+          alert("Admin Panel Toggled");
+        }
+        logoClicks = 0; // reset
+      }
+      // Reset clicks after 2 seconds of inactivity
+      setTimeout(() => { logoClicks = 0; }, 2000);
+    });
+  }
+
+  if (generateSmsBtn) {
+    generateSmsBtn.onclick = () => {
+      const phone = document.getElementById('adminPhone').value.trim();
+      const name = document.getElementById('adminName').value.trim();
+      
+      if (!phone || !name) {
+        return alert("Please enter the customer's name and phone number.");
+      }
+
+      // Generate Current Month Code
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0'); 
+      const yy = String(now.getFullYear()).slice(-2);         
+      const code = `SUVE-${mm}-${yy}`;
+
+      // Create the SMS text
+      const message = `Hello ${name}, your DutyCam payment was received. Your unlock code is ${code}. Enter this code in the app to unlock for 30 days.`;
+      
+      // Show output box
+      document.getElementById('smsOutput').style.display = 'block';
+      document.getElementById('smsText').textContent = message;
+
+      // Create SMS link (Works on both iOS and Android)
+      const smsLink = document.getElementById('smsLink');
+      // iOS uses &body=, Android uses ?body=
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      smsLink.href = isIOS 
+        ? `sms:${phone}&body=${encodeURIComponent(message)}` 
+        : `sms:${phone}?body=${encodeURIComponent(message)}`;
+    };
+  }
 });
