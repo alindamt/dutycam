@@ -280,8 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleList.innerHTML = html;
   }
 
-    // ============================================
-  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (Auto Lock)
+      // ============================================
+  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (5 MIN TEST)
   // ============================================
   
   // Set this to a secret PIN you will give users after they pay
@@ -289,25 +289,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function checkSubscription() {
     try {
-      let installDate = localStorage.getItem('dutycam_install_date');
+      let installTime = localStorage.getItem('dutycam_install_time');
       let isSubscribed = localStorage.getItem('dutycam_subscribed');
 
-      if (!installDate) {
-        installDate = new Date().toISOString();
-        localStorage.setItem('dutycam_install_date', installDate);
+      // If first time opening the app, save the exact time
+      if (!installTime) {
+        installTime = new Date().toISOString();
+        localStorage.setItem('dutycam_install_time', installTime);
       }
 
       // If they already entered the PIN, keep it unlocked
       if (isSubscribed === "true") {
         sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Subscribed)`;
+        sessionInfo.style.color = "#0b9e6b";
         return;
       }
 
-      const start = new Date(installDate);
+      const start = new Date(installTime);
       const now = new Date();
-      const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      
+      // Calculate difference in MINUTES (for testing)
+      const diffMinutes = Math.floor((now - start) / (1000 * 60));
 
-      if (diffDays > 14) {
+      // LOCK AFTER 5 MINUTES
+      if (diffMinutes > 5) {
         // TRIAL EXPIRED: LOCK THE APP
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -335,8 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
       } else {
-        const daysLeft = 14 - diffDays;
-        sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Trial: ${daysLeft} days left)`;
+        const minsLeft = 5 - diffMinutes;
+        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Test Trial: ${minsLeft} mins left`;
       }
     } catch(e) { console.warn(e); }
   }
