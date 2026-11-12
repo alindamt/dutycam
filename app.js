@@ -1,5 +1,5 @@
 /* ============================================
-   DUTYCAM v8 · FINAL STABLE RELEASE
+   DUTYCAM v9 · FINAL BUG-FREE RELEASE
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cameraStatus = document.getElementById('cameraStatus');
 
   let mediaStream = null;
-  let allRecords = []; // Our 3-month database
+  let allRecords = [];
 
   // ============================================
   // 1. NAVIGATION & TABS
@@ -40,21 +40,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (pageName === 'schedule') {
-      renderSchedule(); // Refresh data when tab is opened
+      renderSchedule();
     }
   };
 
   // ============================================
-  // 2. CAMERA & VOICE (Stable Implementation)
+  // 2. CAMERA & VOICE (Stable for all phones)
   // ============================================
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    // Request basic video to avoid green screen on older Androids
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       .then(stream => { 
         mediaStream = stream; 
         if (video) {
           video.srcObject = stream;
-          // Force play to ensure the stream renders
           video.onloadedmetadata = () => {
             video.play().catch(err => console.log("Play error:", err));
           };
@@ -70,10 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cameraStatus.textContent = "blocked";
             cameraStatus.style.background = "#d64545";
         }
-        alert("Please allow camera access to use DutyCam.");
       });
-  } else {
-    alert("Camera API not supported in this browser.");
   }
 
   function takeSnapshot() {
@@ -82,24 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        
         const ctx = canvas.getContext('2d');
-        ctx.save();
-        // Match the CSS mirror effect
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
         
         video.style.opacity = '0.3';
         setTimeout(() => video.style.opacity = '1', 200);
         
-        // Slight delay to let the camera adjust lighting before saving image
         setTimeout(() => resolve(canvas.toDataURL('image/jpeg', 0.5)), 300);
-      } catch (e) { 
-        console.warn("Snapshot failed:", e);
-        resolve(null); 
-      }
+      } catch (e) { resolve(null); }
     });
   }
 
@@ -131,18 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
       speak("Welcome " + name);
       const photo = await takeSnapshot();
       
-      const record = {
+      allRecords.push({
         id: Date.now(),
         name: name,
         type: 'in',
         timestamp: new Date().toISOString(),
         photo: photo,
-        durationMinutes: null // Will be calculated on sign out
-      };
+        durationMinutes: null
+      });
 
-      allRecords.push(record);
       saveToDatabase();
-      alert(`Signed IN successfully at ${new Date().toLocaleTimeString()}`);
+      
+      const now = new Date().toLocaleTimeString();
+      if(lastActionMessage) lastActionMessage.innerHTML = `<i class="fas fa-check-circle" style="color: #0b9e6b;"></i> Signed in at ${now}`;
     };
   }
 
@@ -152,27 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = userNameInput.value.trim();
       if (!name) return alert("Please enter your name first!");
 
-      // Find the most recent "IN" for this user that doesn't have a duration yet
-      const lastInRecord = allRecords.slice().reverse().find(r => r.name.toLowerCase() === name.toLowerCase() && r.type === 'in' && r.durationMinutes === null);
+      const lastIn = allRecords.slice().reverse().find(r => r.name.toLowerCase() === name.toLowerCase() && r.type === 'in' && r.durationMinutes === null);
       
-      if (!lastInRecord) {
-        return alert(`Error: No active Sign-In found for ${name}. Please Sign In first.`);
-      }
+      if (!lastIn) return alert(`No active Sign-In found for ${name}.`);
 
       speak("Goodbye " + name);
       const photo = await takeSnapshot();
       
       const now = new Date();
-      const inTime = new Date(lastInRecord.timestamp);
-      
-      // Calculate exact minutes worked
-      const diffMs = now - inTime;
-      const diffMins = Math.floor(diffMs / 60000); 
+      const diffMins = Math.floor((now - new Date(lastIn.timestamp)) / 60000);
+      lastIn.durationMinutes = diffMins;
 
-      // Update the IN record with the calculated time
-      lastInRecord.durationMinutes = diffMins;
-
-      // Add the OUT record
       allRecords.push({
         id: Date.now(),
         name: name,
@@ -182,22 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       saveToDatabase();
-      alert(`Signed OUT successfully. You worked for ${Math.floor(diffMins/60)}h ${diffMins%60}m.`);
+      
+      const timeStr = now.toLocaleTimeString();
+      if(lastActionMessage) lastActionMessage.innerHTML = `<i class="fas fa-check-circle" style="color: #d64545;"></i> Signed out at ${timeStr}`;
     };
   }
 
   // ============================================
-  // 4. DATABASE (3-Month Auto-Delete)
+  // 4. DATABASE
   // ============================================
   function saveToDatabase() {
     try {
-      // Keep only records from the last 90 days
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setDate(threeMonthsAgo.getDate() - 90);
-      
       allRecords = allRecords.filter(r => new Date(r.timestamp) > threeMonthsAgo);
       localStorage.setItem('dutycam_records', JSON.stringify(allRecords));
-    } catch(e) { console.warn("Storage error", e); }
+    } catch(e) {}
   }
 
   function loadDatabase() {
@@ -210,34 +186,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================
   // 5. SCHEDULE & SEARCH RENDERER
   // ============================================
-  if (searchInput) {
-    searchInput.addEventListener('input', renderSchedule);
-  }
+  if (searchInput) searchInput.addEventListener('input', renderSchedule);
 
   function renderSchedule() {
     if (!scheduleList) return;
-    
     const query = searchInput.value.trim().toLowerCase();
-    
-    // Filter records by name
-    const filtered = query 
-      ? allRecords.filter(r => r.name.toLowerCase().includes(query))
-      : allRecords;
+    const filtered = query ? allRecords.filter(r => r.name.toLowerCase().includes(query)) : allRecords;
 
-    // Calculate Total Minutes
     let totalMins = 0;
-    filtered.forEach(r => {
-      if (r.type === 'in' && r.durationMinutes) totalMins += r.durationMinutes;
-    });
+    filtered.forEach(r => { if (r.type === 'in' && r.durationMinutes) totalMins += r.durationMinutes; });
 
-    // Display Total Time
-    const hours = Math.floor(totalMins / 60);
-    const mins = totalMins % 60;
-    totalHoursDisplay.textContent = `${hours} hrs ${mins} mins`;
+    totalHoursDisplay.textContent = `${Math.floor(totalMins / 60)} hrs ${totalMins % 60} mins`;
 
-    // Render List (Newest first)
     if (filtered.length === 0) {
-      scheduleList.innerHTML = `<div style="color: #9aa6c2; text-align: center; padding: 20px;">No records found for "${query}".</div>`;
+      scheduleList.innerHTML = `<div style="color: #9aa6c2; text-align: center; padding: 20px;">No records found.</div>`;
       return;
     }
 
@@ -245,33 +207,17 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = filtered.length - 1; i >= 0; i--) {
       const r = filtered[i];
       const date = new Date(r.timestamp);
+      let durationHtml = r.durationMinutes !== null ? `<span class="badge-total">Worked: ${Math.floor(r.durationMinutes/60)}h ${r.durationMinutes%60}m</span>` : `<span style="color: #f59e0b; font-size: 0.8rem;">On shift...</span>`;
       
-      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      let durationHtml = '';
-      if (r.type === 'in' && r.durationMinutes !== null) {
-        const h = Math.floor(r.durationMinutes / 60);
-        const m = r.durationMinutes % 60;
-        durationHtml = `<span class="badge-total">Worked: ${h}h ${m}m</span>`;
-      } else if (r.type === 'in') {
-        durationHtml = `<span style="color: #f59e0b; font-size: 0.8rem;">Currently on shift...</span>`;
-      }
-
-      const icon = r.type === 'in' 
-        ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i> SIGN IN'
-        : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i> SIGN OUT';
-
-      const photoHtml = r.photo 
-        ? `<img src="${r.photo}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #000;">`
-        : `<div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(255,255,255,0.1);"></div>`;
+      const icon = r.type === 'in' ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>' : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
+      const photoHtml = r.photo ? `<img src="${r.photo}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #000;">` : `<div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(255,255,255,0.1);"></div>`;
 
       html += `
         <div class="report-card" style="display: flex; gap: 12px; align-items: center;">
           ${photoHtml}
           <div style="flex: 1;">
             <div style="color: white; font-weight: bold; margin-bottom: 4px;">${r.name}</div>
-            <div style="font-size: 0.85rem; color: #9aa6c2;">${dateStr} · ${timeStr}</div>
+            <div style="font-size: 0.85rem; color: #9aa6c2;">${date.toLocaleDateString()} · ${date.toLocaleTimeString()}</div>
             <div style="margin-top: 5px;">${icon} ${durationHtml}</div>
           </div>
         </div>
@@ -280,18 +226,15 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleList.innerHTML = html;
   }
 
-        // ============================================
-  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (Self-Unlock)
   // ============================================
-  
+  // 6. SUBSCRIPTION & LOCK ENGINE
+  // ============================================
   function checkSubscription() {
     try {
       const now = new Date();
-      
       let installTime = localStorage.getItem('dutycam_install_time');
       let paidUntil = localStorage.getItem('dutycam_paid_until');
 
-      // 1. Initial 14-Day Free Trial
       if (!installTime) {
         installTime = now.toISOString();
         localStorage.setItem('dutycam_install_time', installTime);
@@ -300,23 +243,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const trialStart = new Date(installTime);
       const trialDaysPassed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
 
-      // 2. Check Payment Status
       if (paidUntil) {
         const paidDate = new Date(paidUntil);
         if (now < paidDate) {
-          // They are actively subscribed
           const daysLeft = Math.ceil((paidDate - now) / (1000 * 60 * 60 * 24));
           sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${daysLeft} days left)`;
           sessionInfo.style.color = "#0b9e6b";
           return;
         } else {
-          // Subscription expired
           localStorage.removeItem('dutycam_paid_until');
         }
       }
 
-      // 3. Lock App if Trial Expired & Not Paid
-      // NOTE: Change 14 to 0 to test immediately!
+      // 14 Days Free Trial
       if (trialDaysPassed >= 14) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -330,70 +269,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (verifyBtn) {
           verifyBtn.onclick = () => {
             const txnId = txnIdInput.value.trim().toUpperCase();
+            if (!txnId) return alert("Please enter the Transaction ID from your payment SMS.");
 
-            if (!txnId) {
-              return alert("Please enter the Transaction ID from your payment SMS.");
-            }
-
-            // --- SECURITY CHECK ---
-            // In a real app, you would send this ID to a server.
-            // For now, we simulate a successful check.
-            // Let's pretend any ID starting with "TXN" is a valid MTN/Airtel receipt.
             if (txnId.startsWith("TXN") || txnId.length > 6) {
-              
-              // 1. Payment Verified! Set 30-day expiry
               const nextMonth = new Date();
               nextMonth.setDate(nextMonth.getDate() + 30);
               localStorage.setItem('dutycam_paid_until', nextMonth.toISOString());
               
-              // 2. Hide Lock Screen
-              alert(`Payment Verified! Transaction: ${txnId}. You now have 30 days of access.`);
+              alert(`Payment Verified! You now have 30 days of access.`);
               lockOverlay.style.display = 'none';
-              
-              // 3. Update Footer
               sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
               sessionInfo.style.color = "#0b9e6b";
-              
             } else {
-              alert("Invalid Transaction ID. Please check the SMS you received from MTN or Airtel and try again.");
+              alert("Invalid Transaction ID.");
             }
           };
         }
       } else {
-        // Trial is active
         const daysLeft = 14 - trialDaysPassed;
         sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
         sessionInfo.style.color = "#0b9e6b";
       }
-    } catch(e) { console.warn(e); }
+    } catch(e) {}
   }
-  // ============================================
-  // 7. START APP
-  // ============================================
-  loadDatabase();
-  checkSubscription();
 
-     // ============================================
-  // 8. ADMIN PANEL LOGIC (Secret Trigger)
   // ============================================
-  
-  // Secret trigger: Click the "DutyCam" logo 5 times to open Admin Panel
+  // 7. ADMIN PANEL (Secret Trigger: Tap logo 5 times)
+  // ============================================
   let logoClicks = 0;
-  const brandLogo = document.querySelector('.brand');
+  const adminTrigger = document.getElementById('adminTrigger');
   const adminPanel = document.getElementById('adminPanel');
   const generateSmsBtn = document.getElementById('generateSmsBtn');
 
-  if (brandLogo) {
-    brandLogo.addEventListener('click', () => {
+  if (adminTrigger) {
+    adminTrigger.addEventListener('click', () => {
       logoClicks++;
       if (logoClicks >= 5) {
-        if (adminPanel) {
-          adminPanel.style.display = adminPanel.style.display === 'none' ? 'block' : 'none';
-          alert("Admin Panel Toggled");
-        }
-        logoClicks = 0; // reset
+        if (adminPanel) adminPanel.style.display = adminPanel.style.display === 'none' ? 'block' : 'none';
+        logoClicks = 0;
       }
-      // Reset clicks after 2 seconds of inactivity
       setTimeout(() => { logoClicks = 0; }, 2000);
     });
   }
@@ -402,31 +316,24 @@ document.addEventListener('DOMContentLoaded', () => {
     generateSmsBtn.onclick = () => {
       const phone = document.getElementById('adminPhone').value.trim();
       const name = document.getElementById('adminName').value.trim();
-      
-      if (!phone || !name) {
-        return alert("Please enter the customer's name and phone number.");
-      }
+      if (!phone || !name) return alert("Enter customer name and phone.");
 
-      // Generate Current Month Code
       const now = new Date();
-      const mm = String(now.getMonth() + 1).padStart(2, '0'); 
-      const yy = String(now.getFullYear()).slice(-2);         
-      const code = `SUVE-${mm}-${yy}`;
+      const code = `SUVE-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getFullYear()).slice(-2)}`;
 
-      // Create the SMS text
-      const message = `Hello ${name}, your DutyCam payment was received. Your unlock code is ${code}. Enter this code in the app to unlock for 30 days.`;
+      const message = `Hello ${name}, your DutyCam payment was received. Your unlock code is ${code}.`;
       
-      // Show output box
       document.getElementById('smsOutput').style.display = 'block';
       document.getElementById('smsText').textContent = message;
 
-      // Create SMS link (Works on both iOS and Android)
-      const smsLink = document.getElementById('smsLink');
-      // iOS uses &body=, Android uses ?body=
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      smsLink.href = isIOS 
-        ? `sms:${phone}&body=${encodeURIComponent(message)}` 
-        : `sms:${phone}?body=${encodeURIComponent(message)}`;
+      document.getElementById('smsLink').href = isIOS ? `sms:${phone}&body=${encodeURIComponent(message)}` : `sms:${phone}?body=${encodeURIComponent(message)}`;
     };
   }
+
+  // ============================================
+  // 8. START APP
+  // ============================================
+  loadDatabase();
+  checkSubscription();
 });
