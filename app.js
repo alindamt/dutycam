@@ -37,23 +37,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // ============================================
+    // ============================================
   // 2. CAMERA & VOICE
   // ============================================
-  if (navigator.mediaDevices) {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-      .then(stream => { mediaStream = stream; video.srcObject = stream; })
-      .catch(err => console.log("Camera error"));
+      .then(stream => { 
+        mediaStream = stream; 
+        if (video) {
+          video.srcObject = stream;
+          // Force the video to play (fixes mobile green screen)
+          video.onloadedmetadata = () => {
+            video.play().catch(err => console.log("Play error:", err));
+          };
+        }
+      })
+      .catch(err => {
+        console.error("Camera error:", err);
+        alert("Please allow camera access to use DutyCam.");
+      });
   }
 
   function takeSnapshot() {
     return new Promise((resolve) => {
-      if (!mediaStream || !video.videoWidth) return resolve(null);
+      if (!mediaStream || !video || !video.videoWidth) return resolve(null);
       try {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // If video is hidden or 0x0, capture at standard size
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        
         const ctx = canvas.getContext('2d');
         ctx.save();
+        // Match the CSS mirror effect
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -62,26 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
         video.style.opacity = '0.3';
         setTimeout(() => video.style.opacity = '1', 200);
         resolve(canvas.toDataURL('image/jpeg', 0.4));
-      } catch (e) { resolve(null); }
+      } catch (e) { 
+        console.warn("Snapshot failed:", e);
+        resolve(null); 
+      }
     });
   }
-
-  function speak(text) {
-    try {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-    } catch(e) {}
-  }
-
-  if(testVoiceBtn) testVoiceBtn.onclick = () => speak("Test successful");
-
-  if (onboardBtn && onboardOverlay) {
-    onboardBtn.onclick = () => {
-      onboardOverlay.style.display = 'none';
-      speak("Ready to work");
-    };
-  }
-
   // ============================================
   // 3. CLOCK IN / OUT LOGIC
   // ============================================
