@@ -1,5 +1,5 @@
 /* ============================================
-   DUTYCAM v6 · SCHEDULE & PAYROLL ENGINE
+   DUTYCAM v7 · FINAL WORKING SCRIPT
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,23 +30,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     
     document.getElementById(`page-${pageName}`).classList.add('active');
-    event.target.closest('.nav-tab').classList.add('active');
+    
+    // Find the clicked tab and make it active
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => {
+      if (tab.getAttribute('onclick').includes(pageName)) {
+        tab.classList.add('active');
+      }
+    });
 
     if (pageName === 'schedule') {
       renderSchedule(); // Refresh data when tab is opened
     }
   };
 
-    // ============================================
+  // ============================================
   // 2. CAMERA & VOICE
   // ============================================
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+    navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => { 
         mediaStream = stream; 
         if (video) {
           video.srcObject = stream;
-          // Force the video to play (fixes mobile green screen)
           video.onloadedmetadata = () => {
             video.play().catch(err => console.log("Play error:", err));
           };
@@ -62,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise((resolve) => {
       if (!mediaStream || !video || !video.videoWidth) return resolve(null);
       try {
-        // If video is hidden or 0x0, capture at standard size
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
         
@@ -76,13 +81,32 @@ document.addEventListener('DOMContentLoaded', () => {
         
         video.style.opacity = '0.3';
         setTimeout(() => video.style.opacity = '1', 200);
-        resolve(canvas.toDataURL('image/jpeg', 0.4));
+        
+        // Delay capture slightly to allow camera to adjust
+        setTimeout(() => resolve(canvas.toDataURL('image/jpeg', 0.4)), 500);
       } catch (e) { 
         console.warn("Snapshot failed:", e);
         resolve(null); 
       }
     });
   }
+
+  function speak(text) {
+    try {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    } catch(e) {}
+  }
+
+  if(testVoiceBtn) testVoiceBtn.onclick = () => speak("Test successful");
+
+  if (onboardBtn && onboardOverlay) {
+    onboardBtn.onclick = () => {
+      onboardOverlay.style.display = 'none';
+      speak("Ready to work");
+    };
+  }
+
   // ============================================
   // 3. CLOCK IN / OUT LOGIC
   // ============================================
@@ -251,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let installDate = localStorage.getItem('dutycam_install_date');
       
-      // If first time opening the app, save today's date
       if (!installDate) {
         installDate = new Date().toISOString();
         localStorage.setItem('dutycam_install_date', installDate);
@@ -274,10 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
           MTN Merchant: <strong>67117277</strong> (Name: DutyCam)<br>
           Airtel Merchant: <strong>654237</strong> (Name: DutyCam)
         `;
-        
-        // Optionally, you can disable buttons here if you want to lock the app fully
-        // signInBtn.disabled = true;
-        // signOutBtn.disabled = true;
       } else {
         const daysLeft = 14 - diffDays;
         sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Trial: ${daysLeft} days left)`;
