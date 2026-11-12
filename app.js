@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       allRecords.push(record);
       saveToDatabase();
-      alert(`Signed IN successfully at ${new Date().toLocaleTimeString()}`);
     };
   }
 
@@ -182,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       saveToDatabase();
-      alert(`Signed OUT successfully. You worked for ${Math.floor(diffMins/60)}h ${diffMins%60}m.`);
     };
   }
 
