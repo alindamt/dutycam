@@ -2,7 +2,7 @@
   // 2. CAMERA & VOICE (BLOB FIX FOR GREEN SCREEN)
   // ============================================
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
       .then(stream => { 
         mediaStream = stream; 
         if (video) {
