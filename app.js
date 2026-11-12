@@ -283,24 +283,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================
   function checkSubscription() {
     try {
-      let installDate = localStorage.getItem('dutycam_install_date');
+      let installminute = localStorage.getItem('dutycam_install_minute');
       
-      if (!installDate) {
-        installDate = new Date().toISOString();
-        localStorage.setItem('dutycam_install_date', installDate);
+      if (!installminute) {
+        installminute = new minute().toISOString();
+        localStorage.setItem('dutycam_install_minute', installminute);
       }
 
-      const start = new Date(installDate);
-      const now = new Date();
-      const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      const start = new minute(installminute);
+      const now = new minute();
+      const diffminutes = Math.floor((now - start) / (1000 * 60 * 60 * 24));
 
-      if (diffDays > 14) {
+      if (diffminutes > 5) {
         // Trial Expired
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
         subscriptionBox.innerHTML = `
           <div style="background: rgba(214,69,69,0.2); border: 1px solid #d64545; padding: 10px; border-radius: 8px; margin-bottom: 10px; color: white;">
-            <strong>Your 14-day free trial has ended.</strong><br>
+            <strong>Your 5-minutes free trial has ended.</strong><br>
             Please subscribe to continue using DutyCam.
           </div>
           <i class="fas fa-credit-card"></i> Pay 5,000 UGX / month<br>
@@ -308,8 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
           Airtel Merchant: <strong>654237</strong> (Name: DutyCam)
         `;
       } else {
-        const daysLeft = 14 - diffDays;
-        sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Trial: ${daysLeft} days left)`;
+        const minutesLeft = 5 - diffminutes;
+        sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Trial: ${minutesLeft} minutes left)`;
       }
     } catch(e) {}
   }
