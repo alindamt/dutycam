@@ -1,27 +1,13 @@
 /* ============================================
-   DUTYCAM v3 · Universal Style Sheet
-   Optimized for: Tecno, itel, Samsung, Motorola,
-                  Infinix, Xiaomi, Realme, Oppo, Vivo,
-                  Nokia, iPhone, Pixel, OnePlus
+   DUTYCAM v7 · MASTER STYLESHEET
    ============================================ */
 
-/* ============================================
-   RESET & GLOBAL
-   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, Helvetica, Arial, sans-serif;
-  -webkit-tap-highlight-color: transparent;   /* remove blue flash on mobile tap */
-  -webkit-touch-callout: none;                 /* disable long-press menu */
-}
-
-/* Prevent zoom-on-tap on iOS inputs/buttons */
-button, input, select, textarea {
-  font-size: 16px;   /* iOS zooms if <16px */
-  font-family: inherit;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 :root {
@@ -29,46 +15,32 @@ button, input, select, textarea {
   --surface: rgba(20, 28, 45, 0.75);
   --glass-border: rgba(255, 255, 255, 0.08);
   --primary: #2a6df4;
-  --primary-glow: #2a6df480;
   --success: #0b9e6b;
   --danger: #d64545;
   --text: #eef2ff;
   --text-dim: #9aa6c2;
-  --card-radius: 32px;
+  --card-radius: 24px;
   --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
-  --transition: all 0.2s ease;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-}
-
-html {
-  -webkit-text-size-adjust: 100%;   /* prevent font scaling on rotate */
-  scroll-behavior: smooth;
 }
 
 body {
   background: radial-gradient(circle at 20% 30%, #101b2e, #060a14);
   min-height: 100vh;
-  min-height: 100dvh;   /* dynamic viewport (mobile keyboard friendly) */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  padding-top: calc(24px + var(--safe-top));
-  padding-bottom: calc(24px + var(--safe-bottom));
-  padding-left: calc(24px + var(--safe-left));
-  padding-right: calc(24px + var(--safe-right));
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-top));
+  padding-bottom: calc(20px + var(--safe-bottom));
   color: var(--text);
   -webkit-user-select: none;
   user-select: none;
-  overscroll-behavior: none;   /* prevent pull-to-refresh interfering */
 }
 
-/* ============================================
-   GLASS MORPHISM
-   ============================================ */
+/* GLASS MORPHISM */
 .glass {
   background: var(--surface);
   backdrop-filter: blur(16px);
@@ -80,22 +52,18 @@ body {
 
 .app-container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* HEADER */
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 12px;
-  flex-wrap: wrap;
-  gap: 12px;
+  padding: 0 10px;
 }
 
 .brand {
@@ -105,26 +73,14 @@ body {
 }
 
 .brand i {
-  font-size: 2rem;
+  font-size: 1.8rem;
   color: var(--primary);
-  filter: drop-shadow(0 0 8px var(--primary-glow));
 }
 
 .brand h1 {
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   font-weight: 600;
   letter-spacing: -0.5px;
-}
-
-.badge {
-  background: rgba(42, 109, 244, 0.2);
-  border: 1px solid var(--primary);
-  padding: 4px 12px;
-  border-radius: 40px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: #b7ceff;
 }
 
 .live-timestamp {
@@ -132,88 +88,69 @@ body {
   align-items: center;
   gap: 8px;
   background: rgba(0, 0, 0, 0.35);
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-radius: 40px;
   border: 1px solid var(--glass-border);
-  font-weight: 400;
-  font-size: 1.1rem;
-  letter-spacing: 0.5px;
-  font-variant-numeric: tabular-nums;   /* stable clock width */
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.live-timestamp i {
-  color: var(--primary);
-}
+.live-timestamp i { color: var(--primary); }
 
-/* ============================================
-   MAIN GRID
-   ============================================ */
+/* MAIN GRID */
 .main-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-/* ============================================
-   CAMERA CARD
-   ============================================ */
+@media (max-width: 800px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CAMERA CARD */
 .camera-card {
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 15px;
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 4px;
+  gap: 10px;
 }
 
 .card-header i {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: var(--primary);
 }
 
 .card-header h2 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 500;
-  letter-spacing: -0.2px;
   flex: 1;
 }
 
 .status-dot {
-  background: #0b9e6b;
+  background: var(--success);
   padding: 4px 12px;
   border-radius: 40px;
   font-size: 0.7rem;
   font-weight: 600;
-  text-transform: uppercase;
   box-shadow: 0 0 10px #0b9e6b80;
-  color: #fff;
-  transition: var(--transition);
 }
 
 .camera-view {
   position: relative;
-  background: #03060c;
-  border-radius: 24px;
+  background: #000;
+  border-radius: 16px;
   overflow: hidden;
   aspect-ratio: 4 / 3;
   border: 1px solid #1f2a3f;
-}
-
-/* Fallback for old browsers without aspect-ratio support (Tecno/itel older Android) */
-@supports not (aspect-ratio: 4 / 3) {
-  .camera-view {
-    height: 0;
-    padding-bottom: 75%;   /* 4:3 */
-  }
-  .camera-view video {
-    position: absolute;
-    inset: 0;
-  }
 }
 
 #videoElement {
@@ -221,571 +158,99 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  transform: scaleX(-1);   /* mirror effect */
-  background: #03060c;
-  transition: opacity 0.15s ease;
+  transform: scaleX(-1);
+  background: #000;
 }
 
-.snapshot-badge {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 6px 14px;
-  border-radius: 40px;
-  font-size: 0.8rem;
-  border: 1px solid var(--primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  animation: pulse 0.6s ease-in-out;
-}
-
-@keyframes pulse {
-  0%   { transform: scale(0.9); opacity: 0; }
-  50%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.camera-controls {
-  display: flex;
-  gap: 14px;
-  margin-top: 6px;
-}
-
-.camera-controls .btn {
-  flex: 1;
-}
-
-.hint {
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: -6px;
-  line-height: 1.4;
-}
-
-/* ============================================
-   RIGHT COLUMN
-   ============================================ */
-.right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
+/* ACTION CARD */
 .action-card {
-  padding: 24px;
+  padding: 20px;
 }
 
 .action-buttons {
   display: flex;
-  gap: 16px;
-  margin: 18px 0 12px;
+  gap: 12px;
+  margin: 15px 0;
 }
 
-.action-buttons .btn {
-  flex: 1;
-  padding: 18px 8px;    /* bigger tap target on mobile */
-  font-size: 1.1rem;
-  font-weight: 500;
+.btn {
+  border: none;
+  padding: 14px 20px;
+  min-height: 48px;
+  border-radius: 60px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  text-align: center;
+  touch-action: manipulation;
 }
+
+.btn-primary { background: var(--primary); }
+.btn-secondary { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glass-border); color: var(--text); }
+.btn-success { background: var(--success); box-shadow: 0 4px 12px #0b9e6b50; }
+.btn-danger { background: var(--danger); box-shadow: 0 4px 12px #d6454550; }
+
+.btn:active { transform: scale(0.97); }
+.action-buttons .btn { flex: 1; }
 
 .last-action {
-  margin-top: 12px;
   background: rgba(0, 0, 0, 0.25);
   padding: 12px 16px;
-  border-radius: 40px;
+  border-radius: 12px;
   font-size: 0.9rem;
   color: var(--text-dim);
   display: flex;
   align-items: center;
   gap: 8px;
   border-left: 3px solid var(--primary);
-  line-height: 1.4;
 }
 
-.last-action i {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-/* ============================================
-   LOGS CARD
-   ============================================ */
-.logs-card {
-  padding: 24px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-height: 360px;
-}
-
-.logs-list {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;   /* smooth scroll on iOS */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
-  padding-right: 4px;
-}
-
-.logs-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.logs-list::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 10px;
-}
-
-.log-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 12px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  transition: var(--transition);
-  font-size: 0.9rem;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.log-entry .log-type {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.log-entry .log-type i {
-  width: 18px;
-}
-
-.log-time {
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  letter-spacing: 0.2px;
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-}
-
-.empty-log {
-  color: var(--text-dim);
-  text-align: center;
-  padding: 28px 0;
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 8px 12px;
+/* REPORTS & HISTORY CARDS */
+.report-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
-  transition: var(--transition);
-  min-width: 44px;
-  min-height: 44px;
+  padding: 12px;
+  margin-bottom: 10px;
   display: flex;
+  gap: 12px;
   align-items: center;
-  justify-content: center;
 }
 
-.btn-icon:hover {
-  background: rgba(214, 69, 69, 0.2);
-  color: #ff8a8a;
+.report-card img {
+  background: #000;
+  display: block;
 }
 
-/* ============================================
-   BUTTONS (touch-friendly, min 44px height)
-   ============================================ */
-.btn {
-  border: none;
-  padding: 14px 20px;
-  min-height: 48px;                    /* WCAG tap target */
-  border-radius: 60px;
-  font-weight: 500;
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: var(--transition);
-  border: 1px solid transparent;
-  color: white;
-  letter-spacing: 0.2px;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;          /* eliminate 300ms delay */
-  text-align: center;
-  line-height: 1.2;
+.badge-total {
+  background: rgba(11, 158, 107, 0.2);
+  color: #0b9e6b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(11, 158, 107, 0.4);
+  display: inline-block;
+  margin-left: 8px;
 }
 
-.btn-primary {
-  background: var(--primary);
-  box-shadow: 0 6px 18px #2a6df450;
-}
-
-.btn-primary:hover,
-.btn-primary:active {
-  background: #1e5ad4;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px #2a6df470;
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--glass-border);
-  color: var(--text);
-}
-
-.btn-secondary:hover,
-.btn-secondary:active {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.btn-success {
-  background: var(--success);
-  box-shadow: 0 6px 18px #0b9e6b50;
-}
-
-.btn-success:hover,
-.btn-success:active {
-  background: #0a8a5c;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px #0b9e6b70;
-}
-
-.btn-danger {
-  background: var(--danger);
-  box-shadow: 0 6px 18px #d6454550;
-}
-
-.btn-danger:hover,
-.btn-danger:active {
-  background: #c03a3a;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px #d6454570;
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-/* ============================================
-   FOOTER
-   ============================================ */
+/* FOOTER */
 .app-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px;
+  flex-direction: column;
+  padding: 16px 20px;
   background: rgba(0, 0, 0, 0.25);
-  border-radius: 60px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--card-radius);
   border: 1px solid var(--glass-border);
   color: var(--text-dim);
   font-size: 0.85rem;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.app-footer i {
-  margin-right: 6px;
-  color: var(--primary);
-}
-
-/* ============================================
-   ONBOARDING OVERLAY (first visit)
-   ============================================ */
-#onboard {
-  animation: fadeIn 0.3s ease;
-}
-
-#onboard > div {
-  animation: slideUp 0.4s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-
-/* ============================================
-   TEST VOICE BUTTON (special styling)
-   ============================================ */
-#testVoiceBtn {
-  border: 1px dashed rgba(42, 109, 244, 0.5);
-  background: rgba(42, 109, 244, 0.08);
-  color: #b7ceff;
-  transition: var(--transition);
-}
-
-#testVoiceBtn:hover,
-#testVoiceBtn:active {
-  background: rgba(42, 109, 244, 0.2);
-  border-color: var(--primary);
-  color: white;
-}
-
-#testVoiceBtn i {
-  color: var(--primary);
-}
-
-/* ============================================
-   RESPONSIVE — TABLET
-   ============================================ */
-@media (max-width: 900px) {
-  .main-grid {
-    grid-template-columns: 1fr;
-  }
-  .logs-card {
-    max-height: 280px;
-  }
-  .app-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .live-timestamp {
-    align-self: flex-end;
-  }
-}
-
-/* ============================================
-   RESPONSIVE — SMALL PHONES (Tecno, itel 5.5")
-   ============================================ */
-@media (max-width: 500px) {
-  body {
-    padding: 12px;
-    padding-top: calc(12px + var(--safe-top));
-    padding-bottom: calc(12px + var(--safe-bottom));
-    align-items: flex-start;   /* top-align on small screens */
-  }
-
-  .app-container {
-    gap: 16px;
-  }
-
-  .app-header {
-    padding: 0;
-  }
-
-  .brand h1 {
-    font-size: 1.5rem;
-  }
-
-  .brand i {
-    font-size: 1.6rem;
-  }
-
-  .badge {
-    font-size: 0.6rem;
-    padding: 3px 10px;
-  }
-
-  .live-timestamp {
-    padding: 6px 16px;
-    font-size: 1rem;
-    align-self: stretch;
-    justify-content: center;
-  }
-
-  .camera-card,
-  .action-card,
-  .logs-card {
-    padding: 16px;
-    border-radius: 24px;
-  }
-
-  .card-header i {
-    font-size: 1.3rem;
-  }
-
-  .card-header h2 {
-    font-size: 1.05rem;
-  }
-
-  .camera-controls {
-    flex-direction: column;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .action-buttons .btn {
-    padding: 16px 8px;
-    font-size: 1rem;
-  }
-
-  .logs-card {
-    max-height: 300px;
-  }
-
-  .log-entry {
-    padding: 10px 14px;
-    font-size: 0.85rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .log-time {
-    margin-left: 0;
-    font-size: 0.75rem;
-  }
-
-  .app-footer {
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    text-align: center;
-    padding: 14px 20px;
-    font-size: 0.8rem;
-  }
-
-  #onboard > div {
-    padding: 22px;
-  }
-
-  #onboard h2 {
-    font-size: 1.2rem;
-  }
-}
-
-/* ============================================
-   RESPONSIVE — VERY SMALL (itel A-series 5")
-   ============================================ */
-@media (max-width: 360px) {
-  .brand h1 {
-    font-size: 1.2rem;
-  }
-
-  .badge {
-    display: none;   /* save space on tiny screens */
-  }
-
-  .hint {
-    font-size: 0.72rem;
-  }
-
-  .live-timestamp {
-    font-size: 0.9rem;
-    padding: 5px 12px;
-  }
-
-  .btn {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    min-height: 44px;
-  }
-
-  .action-buttons .btn {
-    padding: 14px 6px;
-    font-size: 0.95rem;
-  }
-}
-
-/* ============================================
-   LANDSCAPE PHONE
-   ============================================ */
-@media (max-height: 500px) and (orientation: landscape) {
-  body {
-    align-items: flex-start;
-  }
-
-  .main-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  .camera-card,
-  .action-card,
-  .logs-card {
-    padding: 14px;
-  }
-
-  .logs-card {
-    max-height: 180px;
-  }
-
-  .camera-view {
-    aspect-ratio: 16 / 9;
-  }
-}
-
-/* ============================================
-   ACCESSIBILITY — reduced motion
-   ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ============================================
-   HIGH CONTRAST / DARK MODE (Samsung)
-   ============================================ */
-@media (prefers-color-scheme: light) {
-  /* App is designed dark — keep dark but ensure readability */
-  body {
-    background: radial-gradient(circle at 20% 30%, #101b2e, #060a14);
-  }
-}
-
-/* ============================================
-   FOCUS STATES (keyboard / accessibility)
-   ============================================ */
-.btn:focus-visible,
-.btn-icon:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 3px;
-}
-
-/* ============================================
-   PRINT (safety — hide UI if user prints)
-   ============================================ */
-@media print {
-  .camera-card,
-  .app-header,
-  .app-footer,
-  #onboard,
-  .camera-controls,
-  .action-buttons,
-  #testVoiceBtn {
-    display: none !important;
-  }
-  body {
-    background: white;
-    color: black;
-    padding: 0;
-  }
-  .glass {
-    background: white;
-    border: 1px solid #ddd;
-    box-shadow: none;
-  }
-  .log-entry {
-    background: #f5f5f5;
-    color: black;
-  }
-}
+.app-footer i { color: var(--primary); }
