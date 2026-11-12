@@ -280,72 +280,93 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleList.innerHTML = html;
   }
 
-      // ============================================
-  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (0 MIN TEST)
+        // ============================================
+  // 6. SUBSCRIPTION & FREE TRIAL ENGINE (Self-Unlock)
   // ============================================
   
-  // Set this to a secret PIN you will give users after they pay
-  const MASTER_UNLOCK_PIN = "2026"; 
-
   function checkSubscription() {
     try {
+      const now = new Date();
+      
       let installTime = localStorage.getItem('dutycam_install_time');
-      let isSubscribed = localStorage.getItem('dutycam_subscribed');
+      let paidUntil = localStorage.getItem('dutycam_paid_until');
 
-      // If first time opening the app, save the exact time
+      // 1. Initial 14-Day Free Trial
       if (!installTime) {
-        installTime = new Date().toISOString();
+        installTime = now.toISOString();
         localStorage.setItem('dutycam_install_time', installTime);
       }
 
-      // If they already entered the PIN, keep it unlocked
-      if (isSubscribed === "true") {
-        sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Subscribed)`;
-        sessionInfo.style.color = "#0b9e6b";
-        return;
+      const trialStart = new Date(installTime);
+      const trialDaysPassed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
+
+      // 2. Check Payment Status
+      if (paidUntil) {
+        const paidDate = new Date(paidUntil);
+        if (now < paidDate) {
+          // They are actively subscribed
+          const daysLeft = Math.ceil((paidDate - now) / (1000 * 60 * 60 * 24));
+          sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${daysLeft} days left)`;
+          sessionInfo.style.color = "#0b9e6b";
+          return;
+        } else {
+          // Subscription expired
+          localStorage.removeItem('dutycam_paid_until');
+        }
       }
 
-      const start = new Date(installTime);
-      const now = new Date();
-      
-      // Calculate difference in MINUTES (for testing)
-      const diffMinutes = Math.floor((now - start) / (1000 * 60));
-
-      // LOCK AFTER 0 MINUTES
-      if (diffMinutes > 0) {
-        // TRIAL EXPIRED: LOCK THE APP
+      // 3. Lock App if Trial Expired & Not Paid
+      // NOTE: Change 14 to 0 to test immediately!
+      if (trialDaysPassed >= 14) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
         
-        // Show the lock overlay
         const lockOverlay = document.getElementById('lockOverlay');
         if (lockOverlay) lockOverlay.style.display = 'flex';
 
-        // Handle the Unlock Button
-        const unlockBtn = document.getElementById('unlockBtn');
-        const unlockCode = document.getElementById('unlockCode');
+        const verifyBtn = document.getElementById('verifyPaymentBtn');
+        const txnIdInput = document.getElementById('txnIdInput');
         
-        if (unlockBtn) {
-          unlockBtn.onclick = () => {
-            if (unlockCode.value.trim() === MASTER_UNLOCK_PIN) {
-              localStorage.setItem('dutycam_subscribed', 'true');
-              alert("Subscription activated successfully! Thank you.");
+        if (verifyBtn) {
+          verifyBtn.onclick = () => {
+            const txnId = txnIdInput.value.trim().toUpperCase();
+
+            if (!txnId) {
+              return alert("Please enter the Transaction ID from your payment SMS.");
+            }
+
+            // --- SECURITY CHECK ---
+            // In a real app, you would send this ID to a server.
+            // For now, we simulate a successful check.
+            // Let's pretend any ID starting with "TXN" is a valid MTN/Airtel receipt.
+            if (txnId.startsWith("TXN") || txnId.length > 6) {
+              
+              // 1. Payment Verified! Set 30-day expiry
+              const nextMonth = new Date();
+              nextMonth.setDate(nextMonth.getDate() + 30);
+              localStorage.setItem('dutycam_paid_until', nextMonth.toISOString());
+              
+              // 2. Hide Lock Screen
+              alert(`Payment Verified! Transaction: ${txnId}. You now have 30 days of access.`);
               lockOverlay.style.display = 'none';
-              sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Active (Subscribed)`;
+              
+              // 3. Update Footer
+              sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
               sessionInfo.style.color = "#0b9e6b";
+              
             } else {
-              alert("Invalid PIN. Please check your payment receipt and try again.");
+              alert("Invalid Transaction ID. Please check the SMS you received from MTN or Airtel and try again.");
             }
           };
         }
-
       } else {
-        const minsLeft = 0 - diffMinutes;
-        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Test Trial: ${minsLeft} mins left`;
+        // Trial is active
+        const daysLeft = 14 - trialDaysPassed;
+        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
+        sessionInfo.style.color = "#0b9e6b";
       }
     } catch(e) { console.warn(e); }
   }
-
   // ============================================
   // 7. START APP
   // ============================================
