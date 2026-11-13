@@ -279,12 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Check if the user typed the exact code
             if (userInput === VALID_CODE) {
-              // Payment Verified! Set 30-day expiry
+              // Payment Verified! Set 5-minutes expiry
               const nextMonth = new Date();
-              nextMonth.setDate(nextMonth.getDate() + 30);
+              nextMonth.setDate(nextMonth.getDate() + 5);
               localStorage.setItem('dutycam_paid_until', nextMonth.toISOString());
               
-              alert(`Code Verified! You now have 30 days of access.`);
+              alert(`Code Verified! You now have 5 minutes of access.`);
               lockOverlay.style.display = 'none';
               sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
               sessionInfo.style.color = "#0b9e6b";
