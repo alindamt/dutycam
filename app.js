@@ -88,22 +88,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+    // Sound State (Default is ON)
+  let soundEnabled = localStorage.getItem('dutycam_sound_enabled') !== 'false';
+
+  // Update the button visual on startup
+  function updateSoundButton() {
+    if (toggleSoundBtn) {
+      if (soundEnabled) {
+        toggleSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i> Voice ON';
+        toggleSoundBtn.style.borderColor = '#0b9e6b';
+        toggleSoundBtn.style.color = '#0b9e6b';
+      } else {
+        toggleSoundBtn.innerHTML = '<i class="fas fa-volume-mute"></i> Silent';
+        toggleSoundBtn.style.borderColor = '#d64545';
+        toggleSoundBtn.style.color = '#d64545';
+      }
+    }
+  }
+  updateSoundButton();
+
+  if (toggleSoundBtn) {
+    toggleSoundBtn.onclick = () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('dutycam_sound_enabled', soundEnabled);
+      updateSoundButton();
+      if (soundEnabled) speak("Voice enabled");
+    };
+  }
+
   function speak(text) {
+    if (!soundEnabled) return; // Do nothing if silent
     try {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
     } catch(e) {}
   }
-
-  if(testVoiceBtn) testVoiceBtn.onclick = () => speak("Test successful");
-
-  if (onboardBtn && onboardOverlay) {
-    onboardBtn.onclick = () => {
-      onboardOverlay.style.display = 'none';
-      speak("Ready to work");
-    };
-  }
-
   // ============================================
   // 3. CLOCK IN / OUT LOGIC
   // ============================================
