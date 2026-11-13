@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 0 Days Free Trial (Change 0 to 14 for production)
+      // 0 Days Free Trial (Change 0 to 0 for production)
       if (trialDaysPassed >= 0) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
           };
         }
       } else {
-        const daysLeft = 14 - trialDaysPassed;
+        const daysLeft = 0 - trialDaysPassed;
         sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
         sessionInfo.style.color = "#0b9e6b";
       }
