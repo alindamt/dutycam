@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const userNameInput = document.getElementById('userNameInput');
   const signInBtn = document.getElementById('signInBtn');
   const signOutBtn = document.getElementById('signOutBtn');
-  const testVoiceBtn = document.getElementById('testVoiceBtn');
+  const VoiceBtn = document.getElementById('VoiceBtn');
   const onboardBtn = document.getElementById('onboardBtn');
   const onboardOverlay = document.getElementById('onboard');
   const searchInput = document.getElementById('searchInput');
@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const subscriptionBox = document.getElementById('subscriptionBox');
   const sessionInfo = document.getElementById('sessionInfo');
   const cameraStatus = document.getElementById('cameraStatus');
+     const VoiceBtn = document.getElementById('VoiceBtn');
+  const toggleSoundBtn = document.getElementById('toggleSoundBtn');
 
   let mediaStream = null;
   let allRecords = [];
