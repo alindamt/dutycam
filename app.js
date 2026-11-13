@@ -255,8 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 14 Days Free Trial
-      if (trialDaysPassed >= 14) {
+      // 0 Days Free Trial
+      if (trialDaysPassed >= 0) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
         
