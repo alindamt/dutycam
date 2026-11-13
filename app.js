@@ -1,5 +1,5 @@
 /* ============================================
-   DUTYCAM v9 · FINAL BUG-FREE RELEASE
+   DUTYCAM v10 · FINAL RELEASE (Voice/Silent)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,17 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const userNameInput = document.getElementById('userNameInput');
   const signInBtn = document.getElementById('signInBtn');
   const signOutBtn = document.getElementById('signOutBtn');
-  const VoiceBtn = document.getElementById('VoiceBtn');
+  const testVoiceBtn = document.getElementById('testVoiceBtn');
+  const toggleSoundBtn = document.getElementById('toggleSoundBtn'); // New Toggle Button
   const onboardBtn = document.getElementById('onboardBtn');
   const onboardOverlay = document.getElementById('onboard');
   const searchInput = document.getElementById('searchInput');
   const scheduleList = document.getElementById('scheduleList');
   const totalHoursDisplay = document.getElementById('totalHoursDisplay');
-  const subscriptionBox = document.getElementById('subscriptionBox');
   const sessionInfo = document.getElementById('sessionInfo');
   const cameraStatus = document.getElementById('cameraStatus');
-     const VoiceBtn = document.getElementById('VoiceBtn');
-  const toggleSoundBtn = document.getElementById('toggleSoundBtn');
 
   let mediaStream = null;
   let allRecords = [];
@@ -47,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ============================================
-  // 2. CAMERA & VOICE (Stable for all phones)
+  // 2. CAMERA & VOICE
   // ============================================
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
@@ -90,10 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-    // Sound State (Default is ON)
+  // --- SOUND ENGINE ---
+  // Check local storage for sound preference (default is ON)
   let soundEnabled = localStorage.getItem('dutycam_sound_enabled') !== 'false';
 
-  // Update the button visual on startup
   function updateSoundButton() {
     if (toggleSoundBtn) {
       if (soundEnabled) {
@@ -119,12 +117,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function speak(text) {
-    if (!soundEnabled) return; // Do nothing if silent
+    if (!soundEnabled) return; // Do nothing if in Silent mode
     try {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
     } catch(e) {}
   }
+
+  if(testVoiceBtn) testVoiceBtn.onclick = () => {
+    if(soundEnabled) {
+      speak("Test successful");
+    } else {
+      alert("You are in Silent mode. Turn Voice ON to test.");
+    }
+  };
+
+  if (onboardBtn && onboardOverlay) {
+    onboardBtn.onclick = () => {
+      onboardOverlay.style.display = 'none';
+      speak("Ready to work");
+    };
+  }
+
   // ============================================
   // 3. CLOCK IN / OUT LOGIC
   // ============================================
@@ -149,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveToDatabase();
       
       const now = new Date().toLocaleTimeString();
+      const lastActionMessage = document.getElementById('lastActionMessage');
       if(lastActionMessage) lastActionMessage.innerHTML = `<i class="fas fa-check-circle" style="color: #0b9e6b;"></i> Signed in at ${now}`;
     };
   }
@@ -181,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveToDatabase();
       
       const timeStr = now.toLocaleTimeString();
+      const lastActionMessage = document.getElementById('lastActionMessage');
       if(lastActionMessage) lastActionMessage.innerHTML = `<i class="fas fa-check-circle" style="color: #d64545;"></i> Signed out at ${timeStr}`;
     };
   }
@@ -268,18 +284,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const paidDate = new Date(paidUntil);
         if (now < paidDate) {
           const daysLeft = Math.ceil((paidDate - now) / (1000 * 60 * 60 * 24));
-          sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${daysLeft} days left)`;
-          sessionInfo.style.color = "#0b9e6b";
+          if (sessionInfo) {
+            sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${daysLeft} days left)`;
+            sessionInfo.style.color = "#0b9e6b";
+          }
           return;
         } else {
           localStorage.removeItem('dutycam_paid_until');
         }
       }
 
-      // 0 Days Free Trial (Change 0 to 14 for production)
-      if (trialDaysPassed >= 0) {
-        sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
-        sessionInfo.style.color = "#d64545";
+      // 14 Days Free Trial (Change 14 to 0 for immediate testing)
+      if (trialDaysPassed >= 14) {
+        if (sessionInfo) {
+          sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
+          sessionInfo.style.color = "#d64545";
+        }
         
         const lockOverlay = document.getElementById('lockOverlay');
         if (lockOverlay) lockOverlay.style.display = 'flex';
@@ -307,8 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
               
               alert(`Code Verified! You now have 30 days of access.`);
               lockOverlay.style.display = 'none';
-              sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
-              sessionInfo.style.color = "#0b9e6b";
+              if (sessionInfo) {
+                sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
+                sessionInfo.style.color = "#0b9e6b";
+              }
             } else {
               alert("Invalid Code. Please check the SMS you received from the Admin and try again.");
             }
@@ -316,8 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         const daysLeft = 14 - trialDaysPassed;
-        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
-        sessionInfo.style.color = "#0b9e6b";
+        if (sessionInfo) {
+          sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
+          sessionInfo.style.color = "#0b9e6b";
+        }
       }
     } catch(e) { console.warn(e); }
   }
