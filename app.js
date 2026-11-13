@@ -244,7 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = filtered.length - 1; i >= 0; i--) {
       const r = filtered[i];
       const date = new Date(r.timestamp);
-      let durationHtml = r.durationMinutes !== null ? `<span class="badge-total">Worked: ${Math.floor(r.durationMinutes/60)}h ${r.durationMinutes%60}m</span>` : `<span style="color: #f59e0b; font-size: 0.8rem;">On shift...</span>`;
+            let durationHtml = '';
+      if (r.type === 'in' && r.durationMinutes !== null && !isNaN(r.durationMinutes)) {
+        const h = Math.floor(r.durationMinutes / 60);
+        const m = r.durationMinutes % 60;
+        durationHtml = `<span class="badge-total">Worked: ${h}h ${m}m</span>`;
+      } else if (r.type === 'in') {
+        durationHtml = `<span style="color: #f59e0b; font-size: 0.8rem;">On shift...</span>`;
+      }
       
       const icon = r.type === 'in' ? '<i class="fas fa-sign-in-alt" style="color: #0b9e6b;"></i>' : '<i class="fas fa-sign-out-alt" style="color: #d64545;"></i>';
       const photoHtml = r.photo ? `<img src="${r.photo}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #000;">` : `<div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(255,255,255,0.1);"></div>`;
