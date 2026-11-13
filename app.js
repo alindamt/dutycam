@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const paidDate = new Date(paidUntil);
         if (now < paidDate) {
           const daysLeft = Math.ceil((paidDate - now) / (1000 * 60 * 60 * 24));
-          sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${minute sLeft} minutes left)`;
+          sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (${daysLeft} days left)`;
           sessionInfo.style.color = "#0b9e6b";
           return;
         } else {
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 0 Days Free Trial (Change 0 to 0 for production)
+      // 0 Days Free Trial (Change 0 to 14 for production)
       if (trialDaysPassed >= 0) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -271,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const userInput = txnIdInput.value.trim().toUpperCase();
             if (!userInput) return alert("Please enter the unlock code from your SMS.");
 
-            // Generate the valid code for the current minute
-            const now = new 5 minute();
+            // Generate the valid code for the current month
+            const now = new Date();
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const yy = String(now.getFullYear()).slice(-2);
             const VALID_CODE = `SUVE-${mm}-${yy}`;
@@ -280,13 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Check if the user typed the exact code
             if (userInput === VALID_CODE) {
               // Payment Verified! Set 5-minutes expiry
-              const next5minutes = new minutes();
-              next5minutes.setminute(next5minutes.getminutes() + 5);
-              localStorage.setItem('dutycam_paid_until', next5minutes.toISOString());
+              const nextMonth = new Date();
+              nextMonth.setDate(nextMonth.getDate() + 5);
+              localStorage.setItem('dutycam_paid_until', nextMonth.toISOString());
               
               alert(`Code Verified! You now have 5 minutes of access.`);
               lockOverlay.style.display = 'none';
-              sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (minutes left)`;
+              sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (5 minutes left)`;
               sessionInfo.style.color = "#0b9e6b";
             } else {
               alert("Invalid Code. Please check the SMS you received from the Admin and try again.");
@@ -294,8 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
           };
         }
       } else {
-        const minutesLeft = 0 - trialDaysPassed;
-        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
+        const daysLeft = 14 - trialDaysPassed;
+        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${minutesLeft} minutes left`;
         sessionInfo.style.color = "#0b9e6b";
       }
     } catch(e) { console.warn(e); }
