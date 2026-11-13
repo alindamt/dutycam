@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 0 Days Free Trial
+      // 0 Days Free Trial (Change 0 to 14 for production)
       if (trialDaysPassed >= 0) {
         sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
         sessionInfo.style.color = "#d64545";
@@ -266,15 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const verifyBtn = document.getElementById('verifyPaymentBtn');
         const txnIdInput = document.getElementById('txnIdInput');
         
-                if (verifyBtn) {
+        if (verifyBtn) {
           verifyBtn.onclick = () => {
             const userInput = txnIdInput.value.trim().toUpperCase();
             if (!userInput) return alert("Please enter the unlock code from your SMS.");
 
             // Generate the valid code for the current month
             const now = new Date();
-            const mm = String(now.getMonth() + 1).padStart(2, '0'); // e.g. 11
-            const yy = String(now.getFullYear()).slice(-2);         // e.g. 26
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yy = String(now.getFullYear()).slice(-2);
             const VALID_CODE = `SUVE-${mm}-${yy}`;
 
             // Check if the user typed the exact code
@@ -293,7 +293,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           };
         }
-         
+      } else {
+        const daysLeft = 14 - trialDaysPassed;
+        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
+        sessionInfo.style.color = "#0b9e6b";
+      }
+    } catch(e) { console.warn(e); }
+  }
+
   // ============================================
   // 7. ADMIN PANEL (Secret Trigger: Tap logo 5 times)
   // ============================================
