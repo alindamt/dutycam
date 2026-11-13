@@ -266,33 +266,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const verifyBtn = document.getElementById('verifyPaymentBtn');
         const txnIdInput = document.getElementById('txnIdInput');
         
-        if (verifyBtn) {
+                if (verifyBtn) {
           verifyBtn.onclick = () => {
-            const txnId = txnIdInput.value.trim().toUpperCase();
-            if (!txnId) return alert("Please enter the Transaction ID from your payment SMS.");
+            const userInput = txnIdInput.value.trim().toUpperCase();
+            if (!userInput) return alert("Please enter the unlock code from your SMS.");
 
-            if (txnId.startsWith("TXN") || txnId.length > 6) {
+            // Generate the valid code for the current month
+            const now = new Date();
+            const mm = String(now.getMonth() + 1).padStart(2, '0'); // e.g. 11
+            const yy = String(now.getFullYear()).slice(-2);         // e.g. 26
+            const VALID_CODE = `SUVE-${mm}-${yy}`;
+
+            // Check if the user typed the exact code
+            if (userInput === VALID_CODE) {
+              // Payment Verified! Set 30-day expiry
               const nextMonth = new Date();
               nextMonth.setDate(nextMonth.getDate() + 30);
               localStorage.setItem('dutycam_paid_until', nextMonth.toISOString());
               
-              alert(`Payment Verified! You now have 30 days of access.`);
+              alert(`Code Verified! You now have 30 days of access.`);
               lockOverlay.style.display = 'none';
               sessionInfo.innerHTML = `<i class="fas fa-check-circle"></i> Subscribed (30 days left)`;
               sessionInfo.style.color = "#0b9e6b";
             } else {
-              alert("Invalid Transaction ID.");
+              alert("Invalid Code. Please check the SMS you received from the Admin and try again.");
             }
           };
         }
-      } else {
-        const daysLeft = 14 - trialDaysPassed;
-        sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
-        sessionInfo.style.color = "#0b9e6b";
-      }
-    } catch(e) {}
-  }
-
+         
   // ============================================
   // 7. ADMIN PANEL (Secret Trigger: Tap logo 5 times)
   // ============================================
