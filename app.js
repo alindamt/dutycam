@@ -301,8 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 0 Days Free Trial (Change 0 to 0 for immediate testing)
-      if (trialDaysPassed >= 0) {
+      // 7 Days Free Trial (Change 7 to 0 for immediate testing)
+      if (trialDaysPassed >= 7) {
         if (sessionInfo) {
           sessionInfo.innerHTML = `<i class="fas fa-lock"></i> Trial Expired`;
           sessionInfo.style.color = "#d64545";
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
           };
         }
       } else {
-        const daysLeft = 0 - trialDaysPassed;
+        const daysLeft = 7 - trialDaysPassed;
         if (sessionInfo) {
           sessionInfo.innerHTML = `<i class="fas fa-clock"></i> Free Trial: ${daysLeft} days left`;
           sessionInfo.style.color = "#0b9e6b";
@@ -352,7 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(e) { console.warn(e); }
   }
-
   // ============================================
   // 7. ADMIN PANEL (Secret Trigger: Tap logo 5 times)
   // ============================================
