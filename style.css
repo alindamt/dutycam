@@ -255,7 +255,7 @@ body {
 
 .app-footer i { color: var(--primary); }
 
-/* Hide the subscription footer from the dashboard */
+/* FORCE HIDE THE FOOTER */
 .app-footer {
   display: none !important;
 }
