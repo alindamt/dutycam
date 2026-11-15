@@ -1,610 +1,193 @@
-"use client";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0f1c">
+  <title>DutyCam · Schedule & Time Tracking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .nav-tabs { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    .nav-tab { flex: 1; padding: 15px; text-align: center; color: #9aa6c2; cursor: pointer; font-weight: 600; transition: 0.3s; }
+    .nav-tab.active { background: #2a6df4; color: white; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .report-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 10px; }
+    .badge-total { background: #0b9e6b; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+  </style>
+</head>
+<body>
 
-import React, { useState } from "react";
-import { 
-  Plus, 
-  Search, 
-  TrendingUp, 
-  ShoppingBag, 
-  Users, 
-  Package, 
-  DollarSign, 
-  Phone, 
-  Mail, 
-  Check, 
-  Shield, 
-  CreditCard,
-  UserShield,
-  Sms,
-  ArrowUpRight
-} from "lucide-react";
+  <!-- ONBOARDING OVERLAY -->
+  <div id="onboard" style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);">
+    <div style="background:#141c2d;border-radius:24px;padding:28px;max-width:420px;width:100%;color:#eef2ff;border:1px solid rgba(255,255,255,0.1);">
+      <h2 style="margin-bottom:12px;font-size:1.4rem;">👋 Welcome to DutyCam</h2>
+      <p style="margin-bottom:16px;line-height:1.6;color:#9aa6c2;font-size:0.95rem;">
+        Enter your name, allow camera access, and tap "Test Voice" to begin tracking your work time.
+      </p>
+      <button id="onboardBtn" style="width:100%;padding:14px;border:none;border-radius:60px;background:#2a6df4;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
+        Got it →
+      </button>
+    </div>
+  </div>
 
-export default function Dashboard() {
-  // Navigation State
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Modal State
-  const [modal, setModal] = useState<string | null>(null);
-
-  // Logo tap count for Admin Panel Toggle
-  const [logoTaps, setLogoTaps] = useState(0);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-
-  // Admin Panel Form States
-  const [adminPhone, setAdminPhone] = useState("");
-  const [adminName, setAdminName] = useState("");
-  const [smsOutput, setSmsOutput] = useState(false);
-
-  // Form states for adding items
-  const [sProdId, setSProdId] = useState("");
-  const [pProdId, setPProdId] = useState("");
-
-  // Mock Data: Products / Inventory
-  const [products, setProducts] = useState([
-    { id: "1", sku: "TILE-300", name: "Tiles 300mmx300mm", category: "Design", costPrice: 15000, sellPrice: 21000, stock: 45, reorder: 10 },
-    { id: "2", sku: "CEM-TOR", name: "Tororo Cement", category: "Construction", costPrice: 26000, sellPrice: 30000, stock: 8, reorder: 15 },
-    { id: "3", sku: "SPADE-ENY", name: "Enya Spade", category: "Construction", costPrice: 11000, sellPrice: 15000, stock: 22, reorder: 5 },
-  ]);
-
-  // Mock Data: Sales History
-  const [salesList, setSalesList] = useState([
-    { id: "s1", productName: "Tororo Cement", partyName: "John Mukasa", quantity: 5, totalAmount: 150000, amountPaid: 150000, profit: 20000, date: "2026-11-14" },
-    { id: "s2", productName: "Tiles 300mmx300mm", partyName: "Grace Namubiru", quantity: 10, totalAmount: 210000, amountPaid: 100000, profit: 60000, date: "2026-11-13" },
-  ]);
-
-  // Mock Data: Purchases History
-  const [purchasesList, setPurchasesList] = useState([
-    { id: "p1", productName: "Tororo Cement", supplierName: "Hima Distributors", quantity: 50, unitCost: 26000, totalCost: 1300000, amountPaid: 1300000, date: "2026-11-10" },
-  ]);
-
-  // Mock Data: Customers
-  const [customers, setCustomers] = useState([
-    { id: "c1", name: "John Mukasa", phone: "+256 700 123456", email: "john@gmail.com", totalSpent: 450000, balanceDue: 0 },
-    { id: "c2", name: "Grace Namubiru", phone: "+256 772 987654", email: "grace.n@yahoo.com", totalSpent: 210000, balanceDue: 110000 },
-  ]);
-
-  // Currency Formatter
-  const formatMoney = (amount: number) => {
-    return `UGX ${amount.toLocaleString()}`;
-  };
-
-  const handleSettleCustomerBalance = (customerId: string) => {
-    setCustomers(customers.map(c => c.id === customerId ? { ...c, balanceDue: 0 } : c));
-  };
-
-  // Logo Tap Handler for Admin Panel
-  const handleLogoTap = () => {
-    const newCount = logoTaps + 1;
-    setLogoTaps(newCount);
-    if (newCount >= 5) {
-      setShowAdminPanel(!showAdminPanel);
-      setLogoTaps(0);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-      {/* 1. TOP HEADER / NAV */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div 
-              onClick={handleLogoTap}
-              className="w-10 h-10 rounded-xl bg-[#6D28D9] text-white font-bold flex items-center justify-center shadow-md cursor-pointer select-none active:scale-95 transition"
-              title="Tap 5 times for Admin Panel"
-            >
-              S
-            </div>
-            <div>
-              <h1 className="font-bold text-slate-900 text-base leading-tight">Suve Cloud ERP</h1>
-              <span className="text-[11px] text-emerald-600 font-medium">● Live on suve.suvesi.com</span>
-            </div>
-          </div>
-
-          <div className="relative flex-1 max-w-xs hidden sm:block">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search products or contacts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/20"
-            />
-          </div>
-        </div>
-
-        {/* Tab Navigation Bar */}
-        <div className="max-w-7xl mx-auto px-4 flex gap-2 overflow-x-auto no-scrollbar border-t border-slate-100 py-2">
-          {[
-            { id: "dashboard", label: "Dashboard", icon: TrendingUp },
-            { id: "inventory", label: "Inventory", icon: Package },
-            { id: "sales", label: "Sales", icon: ShoppingBag },
-            { id: "purchases", label: "Purchases", icon: DollarSign },
-            { id: "customers", label: "Customers", icon: Users },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  isActive
-                    ? "bg-[#6D28D9] text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+  <!-- LOCK OVERLAY (Trial Expired) -->
+  <div id="lockOverlay" style="display:none;position:fixed;inset:0;background:rgba(11,15,28,0.95);z-index:9998;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);">
+    <div style="background:#141c2d;border-radius:24px;padding:28px;max-width:420px;width:100%;color:#eef2ff;border:1px solid #d64545;box-shadow:0 20px 60px rgba(0,0,0,0.7);text-align:center;">
+      <i class="fas fa-lock" style="font-size: 3rem; color: #d64545; margin-bottom: 15px;"></i>
+      <h2 style="margin-bottom:12px;font-size:1.4rem;">Trial Expired</h2>
+      <p style="margin-bottom:20px;line-height:1.6;color:#9aa6c2;font-size:0.95rem;">
+        Your 7-day free trial has ended. Please subscribe to continue using DutyCam.
+      </p>
+      
+      <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
+        <h3 style="margin-bottom: 10px; color: white;"><i class="fas fa-credit-card"></i> Payment Details</h3>
+        <p style="margin-bottom: 5px; color: #c7d2ff;">Amount: <strong>5,000 UGX / month</strong></p>
+        <p style="margin-bottom: 5px; color: #c7d2ff;">MTN Merchant: <strong>67117277</strong></p>
+        <p style="color: #c7d2ff;">Airtel Merchant: <strong>654237</strong></p>
       </div>
 
-      {/* 2. MAIN DASHBOARD CONTENT AREA */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6 flex-1">
-        
-        {/* ADMIN PANEL (Hidden by default - tap logo 5 times) */}
-        {showAdminPanel && (
-          <div className="bg-[#141c2d] p-6 rounded-2xl border border-[#2a6df4] text-white space-y-4 shadow-xl">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-              <UserShield className="w-5 h-5 text-[#2a6df4]" />
-              <h2 className="font-bold text-base">Admin Dashboard</h2>
-            </div>
-            
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-[#9aa6c2] block mb-1">Customer Phone Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 0771234567"
-                  value={adminPhone}
-                  onChange={(e) => setAdminPhone(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-black/30 border border-white/10 text-white focus:outline-none focus:border-[#2a6df4]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[#9aa6c2] block mb-1">Customer Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. John Doe"
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-black/30 border border-white/10 text-white focus:outline-none focus:border-[#2a6df4]"
-                />
-              </div>
-
-              <button
-                onClick={() => setSmsOutput(true)}
-                className="w-full py-3 bg-[#2a6df4] hover:bg-[#1d55cb] text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Generate SMS Code
-              </button>
-
-              {smsOutput && (
-                <div className="bg-[#0b9e6b]/10 border border-[#0b9e6b] p-4 rounded-lg space-y-3">
-                  <p className="text-[#0b9e6b] font-bold">Message Ready to Send:</p>
-                  <p className="text-white text-xs">
-                    Hello {adminName || "Customer"}, your subscription activation code for Suve ERP is active. Phone: {adminPhone}
-                  </p>
-                  <a
-                    href={`sms:${adminPhone}?body=Hello%20${encodeURIComponent(adminName)},%20your%20Suve%20SaaS%20subscription%20is%20active.`}
-                    className="block w-full py-2.5 bg-[#0b9e6b] hover:bg-[#098357] text-white font-semibold rounded-lg text-center transition"
-                  >
-                    Open SMS App
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* DASHBOARD TAB */}
-        {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                <span className="text-xs text-slate-400">Total Revenue</span>
-                <h3 className="text-lg font-bold text-slate-900">{formatMoney(360000)}</h3>
-                <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
-                  <ArrowUpRight className="w-3 h-3" /> +12% this week
-                </span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                <span className="text-xs text-slate-400">Net Profit</span>
-                <h3 className="text-lg font-bold text-emerald-600">{formatMoney(80000)}</h3>
-                <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
-                  <ArrowUpRight className="w-3 h-3" /> +8% margin
-                </span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                <span className="text-xs text-slate-400">Active Products</span>
-                <h3 className="text-lg font-bold text-slate-900">{products.length}</h3>
-                <span className="text-[10px] text-slate-500">Stock items listed</span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                <span className="text-xs text-slate-400">Pending Credit</span>
-                <h3 className="text-lg font-bold text-amber-600">{formatMoney(110000)}</h3>
-                <span className="text-[10px] text-amber-600 font-medium">1 customer due</span>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] p-6 rounded-3xl text-white shadow-lg space-y-4">
-              <h2 className="text-xl font-bold">Welcome back, Boss!</h2>
-              <p className="text-xs text-purple-100 max-w-lg">
-                Your mobile inventory and accounting system is fully active. Switch tabs above to manage your stock, record new sales, or view supplier purchases.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <button
-                  onClick={() => setActiveTab("sales")}
-                  className="px-4 py-2.5 bg-white text-[#6D28D9] font-semibold text-xs rounded-xl shadow-sm hover:bg-purple-50 transition cursor-pointer"
-                >
-                  Record New Sale
-                </button>
-                <button
-                  onClick={() => setActiveTab("inventory")}
-                  className="px-4 py-2.5 bg-purple-700/60 text-white font-semibold text-xs rounded-xl border border-purple-400/30 hover:bg-purple-700 transition cursor-pointer"
-                >
-                  View Inventory
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* INVENTORY TAB */}
-        {activeTab === "inventory" && (
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Product Catalog</h2>
-                <p className="text-xs text-slate-400">Manage stock levels & pricing</p>
-              </div>
-              <button
-                onClick={() => setModal("product")}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#6D28D9] text-white text-xs font-semibold shadow-sm hover:bg-[#5B21B6] transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Add Product
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {products
-                .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((p) => (
-                  <div key={p.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-sm">{p.name}</h3>
-                        <span className="text-[11px] font-mono text-slate-400">SKU: {p.sku}</span>
-                      </div>
-                      <span className="text-[11px] font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                        {p.category}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl text-xs">
-                      <div>
-                        <span className="text-slate-400 block">Cost Price</span>
-                        <span className="font-semibold text-slate-700">{formatMoney(p.costPrice)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block">Selling Price</span>
-                        <span className="font-semibold text-emerald-700">{formatMoney(p.sellPrice)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="text-slate-500">
-                        In Stock: <strong className="text-slate-900">{p.stock} units</strong>
-                      </span>
-                      {p.stock <= p.reorder ? (
-                        <span className="px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 text-[11px]">
-                          Low Stock
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 text-[11px]">
-                          In Stock
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-              {products.length === 0 && (
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-400">
-                  No products found. Click "Add Product" to get started.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* SALES TAB */}
-        {activeTab === "sales" && (
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Sales History</h2>
-                <p className="text-xs text-slate-400">Track revenue, payments & profit</p>
-              </div>
-              <button
-                onClick={() => {
-                  if (products.length > 0) setSProdId(products[0].id);
-                  setModal("sale");
-                }}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#6D28D9] text-white text-xs font-semibold shadow-sm hover:bg-[#5B21B6] transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Record Sale
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {salesList.map((s) => {
-                const isFullyPaid = s.amountPaid >= s.totalAmount;
-                return (
-                  <div key={s.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-sm">
-                          {s.productName} <span className="font-normal text-slate-500">× {s.quantity}</span>
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Customer: <span className="font-medium text-slate-700">{s.partyName}</span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-bold text-slate-900 text-base">{formatMoney(s.totalAmount)}</span>
-                        <span className="block text-[11px] text-slate-400">{s.date}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-500">
-                          Paid: <strong className="text-slate-800">{formatMoney(s.amountPaid)}</strong>
-                        </span>
-                        {!isFullyPaid && (
-                          <span className="px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 text-[10px]">
-                            Credit Due
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-semibold text-emerald-600">
-                        Profit: {formatMoney(s.profit)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {salesList.length === 0 && (
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-400">
-                  No sales recorded yet. Click "Record Sale" to add your first transaction.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* PURCHASES TAB */}
-        {activeTab === "purchases" && (
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Purchase History</h2>
-                <p className="text-xs text-slate-400">Track stock replenishment & supplier bills</p>
-              </div>
-              <button
-                onClick={() => {
-                  if (products.length > 0) setPProdId(products[0].id);
-                  setModal("purchase");
-                }}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#6D28D9] text-white text-xs font-semibold shadow-sm hover:bg-[#5B21B6] transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Purchase Stock
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {purchasesList.map((p) => {
-                const isPaidInFull = p.amountPaid >= p.totalCost;
-                return (
-                  <div key={p.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-sm">
-                          {p.productName} <span className="font-normal text-slate-500">+{p.quantity} units</span>
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Supplier: <span className="font-medium text-slate-700">{p.supplierName}</span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-bold text-slate-900 text-base">{formatMoney(p.totalCost)}</span>
-                        <span className="block text-[11px] text-slate-400">{p.date}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-500">
-                          Paid: <strong className="text-slate-800">{formatMoney(p.amountPaid)}</strong>
-                        </span>
-                        {!isPaidInFull && (
-                          <span className="px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 text-[10px]">
-                            Balance Due
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-slate-500">
-                        Unit Cost: <strong className="text-slate-800">{formatMoney(p.unitCost)}</strong>
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {purchasesList.length === 0 && (
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-400">
-                  No purchases recorded yet. Click "Purchase Stock" to log your first restocking bill.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* CUSTOMERS TAB */}
-        {activeTab === "customers" && (
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Customers</h2>
-                <p className="text-xs text-slate-400">Contacts & credit balances</p>
-              </div>
-              <button
-                onClick={() => setModal("customer")}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#6D28D9] text-white text-xs font-semibold shadow-sm hover:bg-[#5B21B6] transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Add Customer
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {customers
-                .filter((c) =>
-                  c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  c.phone.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map((c) => (
-                  <div key={c.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-100 text-[#6D28D9] font-bold text-sm flex items-center justify-center shrink-0">
-                          {c.name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-sm leading-tight">{c.name}</h3>
-                          <span className="text-[11px] text-slate-400">
-                            {c.balanceDue > 0 ? "Credit Account" : "Good Standing"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {c.balanceDue > 0 ? (
-                        <span className="px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-800 text-[11px] shrink-0">
-                          Owes {formatMoney(c.balanceDue)}
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full font-medium bg-emerald-50 text-emerald-700 text-[11px] shrink-0">
-                          Settled
-                        </span>
-                      )}
-                    </div>
-
-                    {(c.phone || c.email) && (
-                      <div className="bg-slate-50 p-3 rounded-xl space-y-1.5 text-xs">
-                        {c.phone && (
-                          <a href={`tel:${c.phone}`} className="flex items-center gap-2 text-slate-700 hover:text-[#6D28D9] font-medium">
-                            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{c.phone}</span>
-                          </a>
-                        )}
-                        {c.email && (
-                          <a href={`mailto:${c.email}`} className="flex items-center gap-2 text-slate-600 hover:text-[#6D28D9] truncate">
-                            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{c.email}</span>
-                          </a>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="text-slate-500">
-                        Total Spent: <strong className="text-slate-900">{formatMoney(c.totalSpent)}</strong>
-                      </span>
-                      {c.balanceDue > 0 && (
-                        <button
-                          onClick={() => handleSettleCustomerBalance(c.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition cursor-pointer"
-                        >
-                          <Check className="w-3.5 h-3.5" /> Settle Debt
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-              {customers.length === 0 && (
-                <div className="col-span-full bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-400">
-                  No customers added yet. Click "Add Customer" to save contacts and track balances.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-      </main>
-
-      {/* 3. SUBSCRIPTION & PROFESSIONAL DEVELOPER FOOTER */}
-      <footer className="mt-12 mb-8 pt-6 border-t border-slate-200 text-center px-4 space-y-4">
-        
-        {/* Subscription Footer Box */}
-        <div className="max-w-md mx-auto bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-left space-y-2 text-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <Shield className="w-4 h-4 text-[#6D28D9]" /> Suve · Free Trial
-            </span>
-            <span className="text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full text-[11px]">
-              Active
-            </span>
-          </div>
-          
-          <div className="text-slate-500 space-y-1 pt-1">
-            <p className="flex items-center gap-1.5 font-medium text-slate-700">
-              <CreditCard className="w-3.5 h-3.5 text-slate-400" /> Subscribe: 5,000 UGX / month
-            </p>
-            <p className="text-[11px] text-slate-600">
-              MTN Merchant: <strong className="text-slate-900 font-mono">67117277</strong> | Airtel: <strong className="text-slate-900 font-mono">654237</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Developer Attribution & WhatsApp CTA */}
-        <div className="max-w-md mx-auto bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-          <p className="text-xs text-slate-500">
-            Designed & Developed by{" "}
-            <span className="font-bold text-slate-800">Eng. Ainda Moses</span>
-          </p>
-          
-          <div className="flex items-center justify-center gap-3 pt-1">
-            <a
-              href="https://suvesi.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-semibold text-slate-600 hover:text-[#6D28D9] bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-xl transition"
-            >
-              suvesi.com
-            </a>
-            
-            <a
-              href="https://wa.me/256776704328?text=Hello%20Eng.%20Ainda,%20I%20would%20like%20to%20discuss%20about%20Suve%20SaaS."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm transition"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-              </svg>
-              Chat on WhatsApp
-            </a>
-          </div>
-        </div>
-
-      </footer>
+      <!-- User enters their Unlock Code here -->
+      <input type="text" id="txnIdInput" placeholder="Enter SMS Unlock Code" style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1rem; outline: none; margin-bottom: 15px; text-align: center; text-transform: uppercase;">
+      
+      <button id="verifyPaymentBtn" style="width:100%;padding:14px;border:none;border-radius:60px;background:#0b9e6b;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
+        Verify Code & Unlock
+      </button>
+      <p style="margin-top: 15px; font-size: 0.8rem; color: #9aa6c2;">
+        Enter the code sent to you via SMS after payment.
+      </p>
     </div>
-  );
-}
+  </div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand" id="adminTrigger">
+        <i class="fas fa-camera-retro"></i>
+        <h1>DutyCam</h1>
+      </div>
+      <div class="live-timestamp">
+        <i class="far fa-clock"></i>
+        <span id="currentTime">--:--:--</span>
+      </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchPage('camera')"><i class="fas fa-camera"></i> Clock In/Out</div>
+      <div class="nav-tab" onclick="switchPage('schedule')"><i class="fas fa-calendar-alt"></i> Schedule & Reports</div>
+    </div>
+
+    <!-- ================= PAGE 1: CAMERA ================= -->
+    <main id="page-camera" class="page active">
+      <div class="main-grid">
+        <section class="camera-card glass">
+          <div class="card-header">
+            <h2>Camera Preview</h2>
+            <span class="status-dot" id="cameraStatus">active</span>
+          </div>
+          <div class="camera-view">
+            <video id="videoElement" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
+            <canvas id="canvasElement" style="display: none;"></canvas>
+          </div>
+        </section>
+
+        <div class="right-column">
+          <section class="action-card glass">
+            <div class="card-header">
+              <i class="fas fa-user-clock"></i>
+              <h2>Duty Actions</h2>
+            </div>
+
+            <div style="margin: 15px 0;">
+              <input type="text" id="userNameInput" placeholder="Enter your name here..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none;">
+            </div>
+
+            <div class="action-buttons">
+              <button id="signInBtn" class="btn btn-success">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+              </button>
+              <button id="signOutBtn" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+
+            <div class="last-action" id="lastActionMessage" style="margin-top: 15px;">
+              <i class="fas fa-history"></i> Ready to record
+            </div>
+
+            <!-- VOICE BUTTONS -->
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+              <button id="testVoiceBtn" class="btn btn-secondary" style="flex: 1; justify-content:center;">
+                <i class="fas fa-volume-up"></i> Test Voice
+              </button>
+              <button id="toggleSoundBtn" class="btn btn-secondary" style="flex: 1; justify-content:center; border-color: #0b9e6b; color: #0b9e6b;">
+                <i class="fas fa-volume-up"></i> Voice ON
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= PAGE 2: SCHEDULE & REPORTS ================= -->
+    <main id="page-schedule" class="page">
+      <div class="glass" style="padding: 20px; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 15px;"><i class="fas fa-search" style="color: #2a6df4;"></i> Search Records</h2>
+        <input type="text" id="searchInput" placeholder="Search by employee name..." style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 1rem; outline: none; margin-bottom: 15px;">
+        
+        <h3 style="margin-bottom: 10px; color: #9aa6c2;">Total Hours Worked (Last 3 Months)</h3>
+        <div id="totalHoursDisplay" style="font-size: 2rem; font-weight: bold; color: #0b9e6b;">0 hrs 0 mins</div>
+      </div>
+
+      <div class="glass" style="padding: 20px;">
+        <h2 style="margin-bottom: 15px;"><i class="fas fa-clipboard-list" style="color: #2a6df4;"></i> Work History</h2>
+        <div id="scheduleList">
+          <div style="color: #9aa6c2; text-align: center;">No records found.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ADMIN PANEL (Hidden - Tap logo 5 times) -->
+    <div id="adminPanel" style="display:none; background: #141c2d; padding: 20px; border-radius: 16px; border: 1px solid #2a6df4; margin-top: 20px;">
+      <h2 style="color: white; margin-bottom: 15px;"><i class="fas fa-user-shield" style="color: #2a6df4;"></i> Admin Dashboard</h2>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="color: #9aa6c2; font-size: 0.9rem;">Customer Phone Number</label>
+        <input type="text" id="adminPhone" placeholder="e.g. 0771234567" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; margin-top: 5px;">
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="color: #9aa6c2; font-size: 0.9rem;">Customer Name</label>
+        <input type="text" id="adminName" placeholder="e.g. John Doe" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; margin-top: 5px;">
+      </div>
+
+      <button id="generateSmsBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 15px;">
+        <i class="fas fa-sms"></i> Generate SMS Code
+      </button>
+
+      <div id="smsOutput" style="display: none; background: rgba(11, 158, 107, 0.1); border: 1px solid #0b9e6b; padding: 15px; border-radius: 8px;">
+        <p style="color: #0b9e6b; font-weight: bold; margin-bottom: 5px;">Message Ready to Send:</p>
+        <p id="smsText" style="color: white; font-size: 0.9rem; margin-bottom: 10px;"></p>
+        <a id="smsLink" href="#" class="btn btn-success" style="width: 100%; text-decoration: none;">
+          <i class="fas fa-paper-plane"></i> Open SMS App
+        </a>
+      </div>
+    </div>
+
+    <!-- SUBSCRIPTION FOOTER (Hidden by default) -->
+        <footer class="app-footer" style="display: none; flex-direction: column; align-items: flex-start; padding: 15px 20px;">
+      <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+        <span><i class="fas fa-shield-alt"></i> DutyCam · Free Trial</span>
+        <span id="sessionInfo" style="color: #0b9e6b; font-weight: bold;">Active</span>
+      </div>
+      <div id="subscriptionBox" style="font-size: 0.8rem; color: #9aa6c2; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; width: 100%;">
+        <i class="fas fa-credit-card"></i> Subscribe: 5,000 UGX / month<br>
+        MTN Merchant: <strong>67117277</strong> | Airtel: <strong>654237</strong>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
